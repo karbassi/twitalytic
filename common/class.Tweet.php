@@ -34,26 +34,27 @@ class Tweet {
 		$this->reply_count_cache = $val["reply_count_cache"];
 
 	}
-	
+
 	public static function extractURLs($tweet_text) {
 		preg_match_all('!https?://[\S]+!', $tweet_text, $matches);
 		return $matches[0];
 	}
-	
+
 }
 
-
 class TweetDAO {
+	global $TWITALYTIC_CFG;
 
 	function getTweet($status_id) {
 		//TODO Fix hardcoded adjusted pub_date
 		$q	= "
-			SELECT 
-				t.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			WHERE
-			 	status_id=".$status_id.";";	
+			 	status_id=".$status_id.";";
+
 		$sql_result = Database::exec($q);
 		$tweet 	= new Tweet(mysql_fetch_assoc($sql_result));
 		mysql_free_result($sql_result);					# Free up memory
@@ -61,66 +62,68 @@ class TweetDAO {
 	}
 
 	private function setTweetWithAuthor($row) {
-		$u = new User($row, ''); 
-		$t = new Tweet($row); 
-		$t->author = $u; 
+		$u = new User($row, '');
+		$t = new Tweet($row);
+		$t->author = $u;
 		return $t;
 	}
 
 	function getStandaloneReplies($username, $limit) {
 		$q = "
 			SELECT
-				t.*, u.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t 
-			inner join 
-				users u 
-			on 
-				t.author_user_id = u.user_id 
-			where 
-				tweet_text 
+				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			ON
+				t.author_user_id = u.user_id
+			WHERE
+				tweet_text
 			LIKE
 				'%".$username."%'
-				and
+				AND
 				in_reply_to_status_id=0
-			order by 
+			ORDER BY
 				adj_pub_date desc
-			LIMIT ".$limit;		
+			LIMIT ".$limit;
+
 		$sql_result = Database::exec($q);
 		$strays = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $strays[] = $this->setTweetWithAuthor($row); }
-		mysql_free_result($sql_result);	
-		return $strays;	
+		mysql_free_result($sql_result);
+		return $strays;
 	}
-	
+
 	function getRepliesToTweet($status_id, $public=false) {
 		$condition = "";
 		if ($public)
 			$condition = "AND u.is_protected = 0";
-			
+
 		//TODO Fix hardcoded adjusted pub_date
 		$q	= "
-			select 
-				t.*, u.*, pub_date - interval 8 hour as adj_pub_date 
-			from 
-				tweets t
-			inner join 
-				users u 
-			on 
-				t.author_user_id = u.user_id 
-			where 
-				in_reply_to_status_id=".$status_id." 
+			SELECT
+				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			ON
+				t.author_user_id = u.user_id
+			WHERE
+				in_reply_to_status_id=".$status_id."
 				"
-			. $condition ."	
-			order by 
-				follower_count desc;";	
+			. $condition ."
+			ORDER BY
+				follower_count desc;";
+
 		$sql_result = Database::exec($q);
 		$tweets_stored 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_stored[] = $this->setTweetWithAuthor($row); } 
+		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_stored[] = $this->setTweetWithAuthor($row); }
 		mysql_free_result($sql_result);					# Free up memory
 		return $tweets_stored;
 	}
-	
+
 	function getTweetsAuthorHasRepliedTo($author_id, $count) {
 		//There's a better way to do this, only returns 1-1 exchanges, not back-and-forth threads
 		//TODO Fix hardcoded adjusted pub_date
@@ -128,59 +131,62 @@ class TweetDAO {
 		$q = "
 			SELECT
 				t1.author_username as questioner, t1.author_avatar as questioner_avatar, t1.status_id, t1.tweet_html as question, t1.pub_date - interval 8 hour as question_adj_pub_date, t.author_username as answerer, t.author_avatar as answerer_avatar, t.tweet_html as answer, t.pub_date - interval 8 hour as answer_adj_pub_date
-			FROM 
-				tweets t 
-			INNER JOIN 
-				tweets t1 on t1.status_id = t.in_reply_to_status_id 
-			WHERE 
-				t.author_user_id = ". $author_id   ." AND t.in_reply_to_status_id is not null 
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t1
+			ON
+				t1.status_id = t.in_reply_to_status_id
+			WHERE
+				t.author_user_id = ". $author_id   ." AND t.in_reply_to_status_id is not null
 			ORDER BY
-				t.pub_date desc 
-			LIMIT ".$count.";";				
+				t.pub_date desc
+			LIMIT ".$count.";";
 
 		$sql_result = Database::exec($q);
 		$tweets_replied_to 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_replied_to[] = $row; } 
+		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_replied_to[] = $row; }
 		mysql_free_result($sql_result);					# Free up memory
 		return $tweets_replied_to;
-		
+
 	}
 
 	function getExchangesBetweenUsers($author_id, $other_user_id) {
 		//TODO Fix hardcoded adjusted pub_date
 
 		$q = "
-		
+
 			SELECT
 				t1.author_username as questioner, t1.author_avatar as questioner_avatar, t1.status_id, t1.tweet_html as question, t1.pub_date - interval 8 hour as question_adj_pub_date, t.author_username as answerer, t.author_avatar as answerer_avatar, t.tweet_html as answer, t.pub_date - interval 8 hour as answer_adj_pub_date
-			FROM 
-				tweets t 
-			INNER JOIN 
-				tweets t1 on t1.status_id = t.in_reply_to_status_id 
-			WHERE 
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t1
+			ON
+				t1.status_id = t.in_reply_to_status_id
+			WHERE
 				t.in_reply_to_status_id is not null AND
 				(t.author_user_id = ". $author_id   ." AND t1.author_user_id = ". $other_user_id. ")
 				OR
 				(t1.author_user_id = ". $author_id   ." AND t.author_user_id = ". $other_user_id. ")
 			ORDER BY
-				t.pub_date desc";				
+				t.pub_date desc";
 
 		$sql_result = Database::exec($q);
 		$tweets_replied_to 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_replied_to[] = $row; } 
+		while ($row = mysql_fetch_assoc($sql_result)) { $tweets_replied_to[] = $row; }
 		mysql_free_result($sql_result);					# Free up memory
 		return $tweets_replied_to;
-		
+
 	}
 
-	
 	function getPublicRepliesToTweet($status_id) {
 		return $this->getRepliesToTweet($status_id, true);
 	}
-	
+
 	function addTweet($vals, $owner, $logger) {
-		if ( !$this->isTweetInDB( $vals['status_id'] ) ) {		
-		
+		if ( !$this->isTweetInDB( $vals['status_id'] ) ) {
+
 			foreach($vals as $key => $value) {
 				$vals[$key] = mysql_real_escape_string($value);
 			}
@@ -198,24 +204,23 @@ class TweetDAO {
 				$tweet_in_reply_to_status_id = $vals['in_reply_to_status_id'];
 			}
 
-
 			$q = "
-				INSERT INTO tweets
+				INSERT INTO
+					" . $TWITALYTIC_CFG['table_prefix'] . "tweets
 					(status_id,
 					author_username,author_fullname,author_avatar,author_user_id,
 					tweet_text,tweet_html,pub_date,in_reply_to_user_id,in_reply_to_status_id,source)
 				VALUES (
-					{$vals['status_id']}, '{$vals['user_name']}', 
+					{$vals['status_id']}, '{$vals['user_name']}',
 					'{$vals['full_name']}', '{$vals['avatar']}', '{$vals['user_id']}',
 					'$tweet_sql','$tweet_html_sql',
 					'{$vals['pub_date']}', $tweet_in_reply_to_user_id, $tweet_in_reply_to_status_id,'{$vals['source']}')
 			";
 			$foo = Database::exec($q);
 
-
 			if ( $vals['in_reply_to_status_id'] != ''  && $this->isTweetInDB($vals['in_reply_to_status_id']) ) {
 				$this->incrementReplyCountCache($vals['in_reply_to_status_id']);
-				$status_message =  "Reply found for ".$vals['in_reply_to_status_id'].", ID: ".$vals["status_id"]."; updating reply cache count";									
+				$status_message =  "Reply found for ".$vals['in_reply_to_status_id'].", ID: ".$vals["status_id"]."; updating reply cache count";
 				$logger->logStatus($status_message, get_class($this) );
 				$status_message = "";
 			}
@@ -227,14 +232,12 @@ class TweetDAO {
 
 	}
 
-
-
 	function isTweetInDB($status_id) {
 		$q = "
-			SELECT 
-				status_id 
-			FROM 
-				tweets 
+			SELECT
+				status_id
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
 			WHERE status_id = ".$status_id;
 		$sql_result = Database::exec($q);
 		if ( mysql_num_rows($sql_result) > 0 )
@@ -245,240 +248,235 @@ class TweetDAO {
 
 	function isReplyInDB($status_id) {
 		$q = "
-			SELECT 
-				status_id 
-			FROM 
-				tweets 
-			WHERE 
+			SELECT
+				status_id
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+			WHERE
 				status_id = ".$status_id;
 		$sql_result = Database::exec($q);
 		if ( mysql_num_rows($sql_result) > 0 )
 			return true;
 		else
 			return false;
-	}	
-	
+	}
+
 	function incrementReplyCountCache($status_id) {
 		$q = "
-			UPDATE 
-				tweets
-			SET 
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+			SET
 				reply_count_cache = reply_count_cache + 1
-			WHERE 
+			WHERE
 				status_id = ". $status_id."
-		"; 
+		";
 		$foo = Database::exec($q);
 		return mysql_affected_rows();
 	}
-	
+
 	function decrementReplyCountCache($status_id) {
 		$q = "
-			UPDATE 
-				tweets
-			SET 
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+			SET
 				reply_count_cache = reply_count_cache - 1
-			WHERE 
+			WHERE
 				status_id = ". $status_id."
-		"; 
+		";
 		$foo = Database::exec($q);
 		return mysql_affected_rows();
-	}	
-	
+	}
+
 	function getAllTweets($author_id, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q 	= "
-			SELECT 
-				t.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
-			WHERE 
+			SELECT
+				t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			WHERE
 				author_user_id = ".$author_id."
-			ORDER BY 
-				pub_date DESC 
+			ORDER BY
+				pub_date DESC
 			LIMIT ".$count.";";
 		$sql_result = Database::exec($q);
 		$all_tweets = array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] =  new Tweet($row); }		
-		mysql_free_result($sql_result);			
+		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] =  new Tweet($row); }
+		mysql_free_result($sql_result);
 		return $all_tweets;
 	}
 
 	function getAllTweetsByUsername($username) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q		= "
-			SELECT 
-				t.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
-			WHERE 
+			SELECT
+				t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			WHERE
 				author_username = '".$username."'
-			ORDER BY 
+			ORDER BY
 				pub_date ASC";
 		$sql_result = Database::exec($q);
 		$all_tweets = array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = new Tweet($row); }		
-		mysql_free_result($sql_result);			
+		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = new Tweet($row); }
+		mysql_free_result($sql_result);
 		return $all_tweets;
 	}
 
-
 	function getStatusSources($author_id) {
 		$q	= "
-			SELECT 
-				source, count(source) as total 
-			FROM 
-				tweets
-			WHERE 
-				author_user_id = ".$author_id."			
+			SELECT
+				source, count(source) as total
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+			WHERE
+				author_user_id = ".$author_id."
 			GROUP BY source
 			ORDER BY total DESC;";
 		$sql_result = Database::exec($q);
 		$all_sources = array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $all_sources[] = $row; }		
-		mysql_free_result($sql_result);			
+		while ($row = mysql_fetch_assoc($sql_result)) { $all_sources[] = $row; }
+		mysql_free_result($sql_result);
 		return $all_sources;
 	}
 
-
-	
 	function getAllMentions($author_username, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q		= "
-			SELECT 
-				t.*, u.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			INNER JOIN
-				users u
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
 			ON
 				t.author_user_id = u.user_id
-			WHERE 
-				tweet_text 
+			WHERE
+				tweet_text
 			LIKE
 				'%".$author_username."%'
-			ORDER BY 
-				pub_date DESC 
+			ORDER BY
+				pub_date DESC
 			LIMIT ".$count.";";
 		$sql_result = Database::exec($q);
 		$all_tweets = array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = $this->setTweetWithAuthor($row); }		
-		mysql_free_result($sql_result);			
+		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = $this->setTweetWithAuthor($row); }
+		mysql_free_result($sql_result);
 		return $all_tweets;
 	}
-	
+
 	function getAllReplies($user_id, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q	= "
-			SELECT 
-				t.*, u.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			INNER JOIN
-				users u
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
 			ON
 				t.author_user_id = u.user_id
-			WHERE 
+			WHERE
 				 in_reply_to_user_id = ".$user_id."
-			ORDER BY 
-				pub_date DESC 
+			ORDER BY
+				pub_date DESC
 			LIMIT ".$count.";";
 		$sql_result = Database::exec($q);
 		$all_tweets = array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = $this->setTweetWithAuthor($row); }		
-		mysql_free_result($sql_result);			
+		while ($row = mysql_fetch_assoc($sql_result)) { $all_tweets[] = $this->setTweetWithAuthor($row); }
+		mysql_free_result($sql_result);
 		return $all_tweets;
-	}	
-
+	}
 
 	function getMostRepliedToTweets($user_id, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q		= "
-			SELECT 
-				t.* , pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.* , pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			WHERE
 				author_user_id = ".$user_id."
 			ORDER BY
-				reply_count_cache DESC 
+				reply_count_cache DESC
 			LIMIT ".$count.";";
 		$sql_result = Database::exec($q);
 		$most_replied_to_tweets 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $most_replied_to_tweets[] = new Tweet($row); } 
-		mysql_free_result($sql_result);	
+		while ($row = mysql_fetch_assoc($sql_result)) { $most_replied_to_tweets[] = new Tweet($row); }
+		mysql_free_result($sql_result);
 		return $most_replied_to_tweets;
-		
+
 	}
-	
+
 	function getOrphanReplies($user_name, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q	= "
-			SELECT 
-				t.* , u.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t 
-			INNER JOIN 
-				users u 
-			ON 
-				u.user_id = t.author_user_id 
-			WHERE 
+			SELECT
+				t.* , u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			ON
+				u.user_id = t.author_user_id
+			WHERE
 				tweet_text LIKE '%".$user_name."%' AND
 				in_reply_to_status_id is null
-			ORDER BY 
-				pub_date DESC 
+			ORDER BY
+				pub_date DESC
 			LIMIT ".$count.";";
 		$sql_result = Database::exec($q);
 		$orphan_replies 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $orphan_replies[] =  $this->setTweetWithAuthor($row); }		
-		mysql_free_result($sql_result);	
+		while ($row = mysql_fetch_assoc($sql_result)) { $orphan_replies[] =  $this->setTweetWithAuthor($row); }
+		mysql_free_result($sql_result);
 		return $orphan_replies;
-		
+
 	}
-	
-	
+
 	function getLikelyOrphansForParent($parent_pub_date, $author_user_id, $author_username, $count) {
 		//TODO Fix hardcoded adjusted pub_date
-		
+
 		$q		= "
-			SELECT 
-				t.* , u.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.* , u.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			INNER JOIN
-				users u
+				" . $TWITALYTIC_CFG['table_prefix'] . "users u
 			ON
 				t.author_user_id = u.user_id
-			WHERE 
-				tweet_text 	LIKE '%".$author_username."%'				
+			WHERE
+				tweet_text 	LIKE '%".$author_username."%'
 			AND
-				pub_date > '". $parent_pub_date ."' 
+				pub_date > '". $parent_pub_date ."'
 			AND
 				in_reply_to_status_id IS NULL
 			AND
 				t.author_user_id != ". $author_user_id ."
-			ORDER BY 
-				pub_date 
-			ASC 
+			ORDER BY
+				pub_date
+			ASC
 			LIMIT ". $count;
 		$sql_result = Database::exec($q);
 		$likely_orphans = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $likely_orphans[] = $this->setTweetWithAuthor($row); }
-		mysql_free_result($sql_result);	
+		mysql_free_result($sql_result);
 		return $likely_orphans;
-		
+
 	}
 
 	function assignParent($parent_id, $orphan_id, $former_parent_id=-1) {
 		$q		= "
-			UPDATE 
-				tweets
-			SET 
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+			SET
 				in_reply_to_status_id = ".$parent_id."
 			WHERE
 				status_id = ".$orphan_id;
@@ -486,35 +484,35 @@ class TweetDAO {
 		if ( $parent_id > 0 )
 			$this->incrementReplyCountCache($parent_id);
 		elseif ($former_parent_id > 0)
-			$this->decrementReplyCountCache($former_parent_id);		
+			$this->decrementReplyCountCache($former_parent_id);
 		return mysql_affected_rows();
 	}
-	
+
 	function getStrayRepliedToTweets($author_id) {
 		$q = "
 			SELECT
 				in_reply_to_status_id
-			FROM 
-				tweets t 
-			WHERE 
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			WHERE
 				t.author_user_id=".$author_id."
-				AND t.in_reply_to_status_id NOT IN (select status_id from tweets) 
+				AND t.in_reply_to_status_id NOT IN (select status_id from tweets)
 			 	AND t.in_reply_to_status_id NOT IN (select status_id from tweet_errors);";
 		$sql_result = Database::exec($q);
 		$strays = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $strays[] = $row; }
-		mysql_free_result($sql_result);	
+		mysql_free_result($sql_result);
 		return $strays;
 	}
-	
+
 	function getTweetsByPublicInstances($count=15) {
 		$q = "
-			SELECT 
-				t.*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			INNER JOIN
-				instances i
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
 			ON
 				t.author_user_id = i.twitter_user_id
 			WHERE
@@ -525,18 +523,18 @@ class TweetDAO {
 		$sql_result = Database::exec($q);
 		$tweets = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $tweets[] = new Tweet($row); }
-		mysql_free_result($sql_result);	
+		mysql_free_result($sql_result);
 		return $tweets;
 	}
 
 	function isTweetByPublicInstance($id) {
 		$q = "
-			SELECT 
-				*, pub_date - interval 8 hour as adj_pub_date 
-			FROM 
-				tweets t
+			SELECT
+				*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
 			INNER JOIN
-				instances i
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
 			ON
 				t.author_user_id = i.twitter_user_id
 			WHERE
@@ -549,16 +547,17 @@ class TweetDAO {
 
 		mysql_free_result($sql_result);
 		return $r;
-	}	
+	}
 
 }
 
 class TweetErrorDAO {
+	global $TWITALYTIC_CFG;
 	function insertError($id, $error_code, $error_text, $issued_to) {
 		$q = "
 			INSERT INTO
-			 	tweet_errors (status_id, error_code, error_text, error_issued_to_user_id)
-			VALUES 
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweet_errors (status_id, error_code, error_text, error_issued_to_user_id)
+			VALUES
 				(".$id.", ".$error_code.", '".$error_text."', ".$issued_to.") ";
 		$sql_result = Database::exec($q);
 		if (mysql_affected_rows() > 0)
@@ -567,4 +566,3 @@ class TweetErrorDAO {
 			return false;
 	}
 }
-?>

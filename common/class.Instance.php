@@ -18,11 +18,13 @@ class Instance {
 	var $is_archive_loaded_follows;
 	var $is_archive_loaded_friends;
 	var $crawler_last_run;
-	var $earliest_reply_in_system;	
+	var $earliest_reply_in_system;
 	var $api_calls_to_leave_unmade_per_minute;
 	var $avg_replies_per_day;
 	var $is_public = false;
-		
+
+	global $TWITALYTIC_CFG;
+
 	function Instance($r) {
 		$this->id = $r["id"];
 		$this->twitter_username = $r['twitter_username'];
@@ -45,58 +47,54 @@ class Instance {
 		else
 			$this->is_archive_loaded_follows = false;
 
-
 		$this->crawler_last_run=$r['crawler_last_run'];
-		$this->earliest_reply_in_system=$r['earliest_reply_in_system'];	
+		$this->earliest_reply_in_system=$r['earliest_reply_in_system'];
 		$this->api_calls_to_leave_unmade_per_minute=$r['api_calls_to_leave_unmade_per_minute'];
 		$this->avg_replies_per_day = $r['avg_replies_per_day'];
 		if ($r['is_public'] == 1)
 			$this-> is_public = true;
-
 	}
 
 }
 
 class InstanceDAO {
-	
+
 	function getInstanceStalestOne() {
 		return $this->getInstanceOneByLastRun("ASC");
 	}
-	
+
 	function getInstanceFreshestOne() {
 		return $this->getInstanceOneByLastRun("DESC");
 	}
-	
+
 	function insert($id, $user) {
 		$q = "
-			INSERT INTO 
-				instances (`twitter_user_id`, `twitter_username`)
-			 VALUES
+			INSERT INTO
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances (`twitter_user_id`, `twitter_username`)
+			VALUES
 				(".$id." , '".$user."')";
 		$sql_result = Database::exec($q);
 	}
 
-	
-
 	private function getAverageReplyCount() {
 		return "round(total_replies_in_system/(datediff(curdate(), earliest_reply_in_system)), 2) as avg_replies_per_day";
 	}
-	
-	
+
 	function getFreshestByOwnerId($owner_id) {
 		$q = "
-			SELECT 
+			SELECT
 				* , ". $this->getAverageReplyCount() ."
-			FROM 
-				instances i
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
 			INNER JOIN
-				owner_instances oi
-			ON 
+				" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances oi
+			ON
 				i.id = oi.instance_id
-			WHERE 
+			WHERE
 				oi.owner_id = ".$owner_id."
-			ORDER BY 
+			ORDER BY
 				crawler_last_run DESC";
+
 		$sql_result = Database::exec($q);
 		if (mysql_num_rows  ( $sql_result  ) == 0 ) {
 			$i = null;
@@ -104,34 +102,33 @@ class InstanceDAO {
 			$row = mysql_fetch_assoc($sql_result);
 			$i = new Instance($row);
 		}
-		mysql_free_result($sql_result);				
+		mysql_free_result($sql_result);
 		return $i;
 	}
 
-	
 	function getInstanceOneByLastRun($order) {
 		$q = "
 			SELECT , ". $this->getAverageReplyCount() ."
-				* 
-			FROM 
-				instances 
-			ORDER BY 
+				*
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+			ORDER BY
 				crawler_last_run
 			".$order." LIMIT 1";
 		$sql_result = Database::exec($q);
 		$row = mysql_fetch_assoc($sql_result);
 		$i = new Instance($row);
-		mysql_free_result($sql_result);				
+		mysql_free_result($sql_result);
 		return $i;
 	}
-	
+
 	function getByUsername($username) {
 		$q = "
-			SELECT 
+			SELECT
 				* , ". $this->getAverageReplyCount() ."
-			FROM 
-				instances 
-			WHERE 
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+			WHERE
 				twitter_username = '".$username."'";
 		$sql_result = Database::exec($q);
 
@@ -141,16 +138,15 @@ class InstanceDAO {
 			$row = mysql_fetch_assoc($sql_result);
 			$i = new Instance($row);
 		}
-		mysql_free_result($sql_result);				
+		mysql_free_result($sql_result);
 		return $i;
 	}
 
-
 	function updateLastRun($id) {
 		$q = "
-			UPDATE 
-				instances
-			 SET 
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+			SET
 				crawler_last_run = NOW()
 			WHERE
 				id = ".$id.";";
@@ -160,23 +156,22 @@ class InstanceDAO {
 
 	function setPublic($u, $p) {
 		$q = "
-			UPDATE 
-				instances
-			 SET 
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+			SET
 				is_public = ".$p."
 			WHERE
 				twitter_username = '".$u."';";
 		$sql_result = Database::exec($q);
 
-	}	
-	
-	
+	}
+
 	function save($i, $user_xml_total_tweets_by_owner, $logger, $api ) {
 		if ($user_xml_total_tweets_by_owner != '')
 			$owner_tweets =  "total_tweets_by_owner = ".$user_xml_total_tweets_by_owner.",";
 		else
 			$owner_tweets = '';
-	
+
 		if ( $i->is_archive_loaded_follows )
 			$is_archive_loaded_follows = 1;
 		else
@@ -186,43 +181,29 @@ class InstanceDAO {
 			$is_archive_loaded_replies = 1;
 		else
 			$is_archive_loaded_replies = 0;
-			
+
 		$lsi = "";
 		if ( $i->last_status_id != "" )
 			$lsi = "last_status_id = ". $i->last_status_id .",";
-			
+
 		$q = "
-			UPDATE 
-				instances
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
 			SET
 				".$lsi."
 				last_page_fetched_followers = ".$i->last_page_fetched_followers.",
 				last_page_fetched_replies = ".$i->last_page_fetched_replies.",
 				last_page_fetched_tweets = ".$i->last_page_fetched_tweets.",
 				crawler_last_run = NOW(),
-				total_tweets_in_system = (select count(*) from tweets where author_user_id=".$i->twitter_user_id."),
+				total_tweets_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where author_user_id=".$i->twitter_user_id."),
 				".$owner_tweets."
-				total_replies_in_system = (select count(*) from tweets where tweet_text like '%@".$i->twitter_username."%'),
-				total_follows_in_system = (select count(*) from follows where user_id=".$i->twitter_user_id." and active=1),
-				total_users_in_system = (select count(*) from users),
+				total_replies_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where tweet_text like '%@".$i->twitter_username."%'),
+				total_follows_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "follows where user_id=".$i->twitter_user_id." and active=1),
+				total_users_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "users),
 				is_archive_loaded_follows = ". $is_archive_loaded_follows .",
 				is_archive_loaded_replies = ". $is_archive_loaded_replies .",
-				earliest_reply_in_system = (select
-					pub_date
-				from 
-					tweets
-				where tweet_text like '%@".$i->twitter_username."%'
-				order by
-					pub_date asc
-				limit 1),
-				earliest_tweet_in_system = (select
-					pub_date
-				from 
-					tweets
-				where author_user_id = ".$i->twitter_user_id."
-				order by
-					pub_date asc
-				limit 1)
+				earliest_reply_in_system = (select pub_date from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where tweet_text like '%@".$i->twitter_username."%' order by pub_date asc limit 1),
+				earliest_tweet_in_system = (select pub_date from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where author_user_id = ".$i->twitter_user_id." order by pub_date asc limit 1)
 			WHERE
 				twitter_user_id = ".$i->twitter_user_id.";";
 		$foo = Database::exec($q);
@@ -230,16 +211,16 @@ class InstanceDAO {
 		$status_message="Updated ".$i->twitter_username."'s system status.";
 		$logger->logStatus($status_message, get_class($this) );
 		$status_message = "";
-		
+
 	}
 
 	function isUserConfigured($un) {
 		$q = "
-			SELECT 
-				twitter_username 
-			FROM 
-				instances
-			WHERE 
+			SELECT
+				twitter_username
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+			WHERE
 				twitter_username = '".$un."'";
 		$sql_result = Database::exec($q);
 		if ( mysql_num_rows($sql_result) > 0 )
@@ -251,20 +232,19 @@ class InstanceDAO {
 	function getAllInstancesStalestFirst() {
 		return $this->getAllInstances("ASC");
 	}
-	
-	
+
 	function getAllInstances($last_run="DESC") {
 		$q = "
-			SELECT 
+			SELECT
 				*, ". $this->getAverageReplyCount() ."
 			FROM
-				instances
+				" . $TWITALYTIC_CFG['table_prefix'] . "instances
 			ORDER BY
 				crawler_last_run
 			".$last_run."";
 		$sql_result = Database::exec($q);
 		$instances 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $instances[] = new Instance($row); } 
+		while ($row = mysql_fetch_assoc($sql_result)) { $instances[] = new Instance($row); }
 		mysql_free_result($sql_result);					# Free up memory
 		return $instances;
 	}
@@ -272,19 +252,19 @@ class InstanceDAO {
 	function getByOwner($o) {
 		if ($o->is_admin) {
 			$q = "
-				SELECT 
+				SELECT
 					*, ". $this->getAverageReplyCount() ."
 				FROM
-					instances i
+					" . $TWITALYTIC_CFG['table_prefix'] . "instances i
 				ORDER BY
-					crawler_last_run 
+					crawler_last_run
 				DESC;";
 		} else {
 			$q = "
-				SELECT 
+				SELECT
 					*, ". $this->getAverageReplyCount() ."
 				FROM
-					owner_instances oi
+					" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances oi
 				INNER JOIN
 					instances i
 				ON
@@ -292,17 +272,13 @@ class InstanceDAO {
 				WHERE
 					oi.owner_id = ".$o->id."
 				ORDER BY
-					crawler_last_run 
+					crawler_last_run
 				DESC;";
 		}
 		$sql_result = Database::exec($q);
 		$instances 		= array();
-		while ($row = mysql_fetch_assoc($sql_result)) { $instances[] = new Instance($row); } 
+		while ($row = mysql_fetch_assoc($sql_result)) { $instances[] = new Instance($row); }
 		mysql_free_result($sql_result);					# Free up memory
 		return $instances;
 	}
-
-
 }
-
-?>

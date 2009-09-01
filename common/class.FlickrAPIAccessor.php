@@ -46,7 +46,6 @@ class FlickrAPIAccessor {
 			return '';
 	}
 
-
 	function base_decode($num, $alphabet="123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ") {
 		$decoded = 0;
 		$multi = 1;
@@ -59,7 +58,4 @@ class FlickrAPIAccessor {
 
 		return $decoded;
 	}
-
-
 }
-?>

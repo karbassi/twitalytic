@@ -7,7 +7,7 @@ class TwitterAPIAccessorOAuth {
 	var $to;
 	var $oauth_access_token;
 	var $oauth_access_token_secret;
-	
+
 	function TwitterAPIAccessorOAuth($oauth_access_token, $oauth_access_token_secret, $cfg) {
 		$this->$oauth_access_token=$oauth_access_token;
 		$this->$oauth_access_token_secret=$oauth_access_token_secret;
@@ -15,7 +15,7 @@ class TwitterAPIAccessorOAuth {
 	    $this->to = new TwitterOAuth($cfg->oauth_consumer_key, $cfg->oauth_consumer_secret, $this->$oauth_access_token, $this->$oauth_access_token_secret);
 		$this->cURL_source = $this -> prepAPI();
 	}
-	
+
 	function verifyCredentials() {
 		//returns user array; -1 if not.
 		$auth = $this->cURL_source['credentials'];
@@ -27,13 +27,13 @@ class TwitterAPIAccessorOAuth {
 			return -1;
 		}
 	}
-	
+
 	function apiRequestFromWebapp($url){
 		$content = $this->to->OAuthRequest($url, array(), 'GET');
 		$status = $this->to->lastStatusCode();
 		return array($status,$content);
 	}
-	
+
 	function prepAPI () {
 
 		# Define how to access Twitter API
@@ -80,7 +80,7 @@ class TwitterAPIAccessorOAuth {
 			"show_tweet" 			=> "/statuses/show/[id]",
 			"post_tweet" 			=> "/statuses/update",
 			"user_timeline" 		=> "/statuses/user_timeline/[id]",
-			"show_user" 			=> "/users/show/[id]"		
+			"show_user" 			=> "/users/show/[id]"
 		);
 
 		# Construct cURL sources
@@ -93,19 +93,19 @@ class TwitterAPIAccessorOAuth {
 
 	    return $urls;
 	}
-	
+
 	function parseFeed ($url,$date=0) {
 		$thisFeed 		= array();
 		$feed_title 	= '';
 		if(preg_match("/^http/", $url)) {
-		try { 
-			$doc 		= createDOMfromURL($url);	
+		try {
+			$doc 		= createDOMfromURL($url);
 
 			$feed_title = $doc->getElementsByTagName('title')->item(0)->nodeValue;
 
 			$item 		= $doc->getElementsByTagName('item');
 			foreach ($item as $item) {
-				$articleInfo = array ( 
+				$articleInfo = array (
 					'title' => $item->getElementsByTagName('title')->item(0)->nodeValue,
 					'link' => $item->getElementsByTagName('link')->item(0)->nodeValue,
 					'id' => $item->getElementsByTagName('id')->item(0)->nodeValue,
@@ -118,7 +118,7 @@ class TwitterAPIAccessorOAuth {
 
 			$entry 		= $doc->getElementsByTagName('entry');
 			foreach ($entry as $entry) {
-				$articleInfo = array ( 
+				$articleInfo = array (
 					'title' => $entry->getElementsByTagName('title')->item(0)->nodeValue,
 					'link' => $entry->getElementsByTagName('link')->item(0)->getAttribute('href'),
 					'id' => $entry->getElementsByTagName('id')->item(0)->nodeValue,
@@ -128,25 +128,25 @@ class TwitterAPIAccessorOAuth {
 				foreach($articleInfo as $key => $value) {
 					$articleInfo[$key] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 				}
-				if (($date == 0) 
-				|| (strtotime($articleInfo['pubDate']) > strtotime($date)) 
+				if (($date == 0)
+				|| (strtotime($articleInfo['pubDate']) > strtotime($date))
 				|| (strtotime($articleInfo['published']) > strtotime($date))) {
 					array_push($thisFeed, $articleInfo);
 				}
 			}
-		} catch (Exception $e) 						{ $form_error = 15; } 
+		} catch (Exception $e) 						{ $form_error = 15; }
 		}
 
 		$feed_title = htmlspecialchars($feed_title, ENT_QUOTES, 'UTF-8');
 	    return array($thisFeed,$feed_title);
 	}
-	
+
 	function parseError($data) {
 		$thisFeed 	= array();
-		try { 
-			$xml 		= $this->createParserFromString(utf8_encode($data));	
+		try {
+			$xml 		= $this->createParserFromString(utf8_encode($data));
 			if ( $xml != false ) {
-				$root = $xml->getName();	
+				$root = $xml->getName();
 				switch ($root) {
 					case 'hash':
 						$thisFeed= array(
@@ -158,17 +158,17 @@ class TwitterAPIAccessorOAuth {
 		    			break;
 				}
 			}
-		} catch (Exception $e) 					{ $form_error = 15; } 
+		} catch (Exception $e) 					{ $form_error = 15; }
 
     	return $thisFeed;
 	}
 
 	function parseXML ($data) {
 		$thisFeed 	= array();
-		try { 
-			$xml 		= $this->createParserFromString(utf8_encode($data));	
+		try {
+			$xml 		= $this->createParserFromString(utf8_encode($data));
 			if ( $xml != false ) {
-				$root = $xml->getName();	
+				$root = $xml->getName();
 				switch ($root) {
 					case 'user':
 		  				$thisFeed[] = array(
@@ -283,8 +283,8 @@ class TwitterAPIAccessorOAuth {
 		  			default:
 		    			break;
 				}
-			} 
-		} catch (Exception $e) 					{ $form_error = 15; } 
+			}
+		} catch (Exception $e) 					{ $form_error = 15; }
 
 	    return $thisFeed;
 	}
@@ -298,7 +298,7 @@ class TwitterAPIAccessorOAuth {
 	function createParserFromString ($data) {
 		$xml = simplexml_load_string($data);
 		return $xml;
-	}	
+	}
 
 }
 
@@ -308,30 +308,29 @@ class CrawlerTwitterAPIAccessorOAuth extends TwitterAPIAccessorOAuth {
 	var $available_api_calls_for_crawler = null;
 	var $available_api_calls_for_twitter = null;
 	var $api_hourly_limit = null;
-	
+
 	function CrawlerTwitterAPIAccessorOAuth($oauth_token, $oauth_token_secret, $cfg, $instance) {
 		parent::TwitterAPIAccessorOAuth($oauth_token, $oauth_token_secret, $cfg);
 		$this->api_calls_to_leave_unmade_per_minute = $instance->api_calls_to_leave_unmade_per_minute;
 	}
-	
+
 	function init($logger) {
 		$status_message = "";
 		$account_status		=  $this->cURL_source['rate_limit'];
 		list($cURL_status,$twitter_data) = $this->apiRequest($account_status, $logger);
 		$this->available_api_calls_for_crawler++; //status check doesnt' count against balance
 
-		if ($cURL_status > 200) { 
+		if ($cURL_status > 200) {
 			$this->available = false;
 		} else {
-			try { 
+			try {
 				# Parse file
-				$status_message = "Parsing XML data from $account_status "; 
+				$status_message = "Parsing XML data from $account_status ";
 				$status = $this->parseXML($twitter_data);
 			 	$this->available_api_calls_for_twitter = $status['remaining-hits'];//get this from API
 			 	$this->api_hourly_limit = $status['hourly-limit'];//get this from API
-			
-				$this->next_api_reset = $status['reset-time'] ;//get this from API
 
+				$this->next_api_reset = $status['reset-time'] ;//get this from API
 
 				//Figure out how many minutes are left in the hour, then multiply that x 1 for api calls to leave unmade
 				$next_reset_in_minutes = (int) date('i', (int) $this->next_api_reset);
@@ -341,22 +340,19 @@ class CrawlerTwitterAPIAccessorOAuth extends TwitterAPIAccessorOAuth {
 					$minutes_left_in_hour = $next_reset_in_minutes - $current_time_in_minutes;
 				elseif ( $next_reset_in_minutes < $current_time_in_minutes )
 					$minutes_left_in_hour = 60 - ($current_time_in_minutes - $next_reset_in_minutes);
-					
 
 				//echo $minutes_left_in_hour . " minutes left in the hour till ".  date('H:i:s', (int) $this->next_api_reset);
 				$this->api_calls_to_leave_unmade = $minutes_left_in_hour * $this->api_calls_to_leave_unmade_per_minute;
 				//echo "  ".$this->api_calls_to_leave_unmade . " API calls to leave unmade\n";
 				$this->available_api_calls_for_crawler = $this->available_api_calls_for_twitter - round($this->api_calls_to_leave_unmade);
 
-
-			} catch (Exception $e) { 
-				$status_message = 'Could not parse account status'; 
-			} 
+			} catch (Exception $e) {
+				$status_message = 'Could not parse account status';
+			}
 		}
 		$logger -> logStatus($status_message, get_class($this) );
-		$logger -> logStatus($this->getStatus(), get_class($this) );		
-		
-		
+		$logger -> logStatus($this->getStatus(), get_class($this) );
+
 	}
 
 	function apiRequest ($url, $logger, $args=array()) {
@@ -367,41 +363,40 @@ class CrawlerTwitterAPIAccessorOAuth extends TwitterAPIAccessorOAuth {
 		$this->available_api_calls_for_crawler = $this->available_api_calls_for_crawler - 1;
 		$status_message = "";
 		if ( $status > 200 ) {
-			$status_message	= "Could not retrieve $url"; 
+			$status_message	= "Could not retrieve $url";
 			if (sizeof($args)>0)
 				$status_message .= "?";
-			foreach ($args as $key => $value) 
+			foreach ($args as $key => $value)
 				$status_message .= $key."=".$value."&";
-			$status_message .= " | API ERROR: $status"; 
-			$status_message .= "\n\n$content\n\n"; 
+			$status_message .= " | API ERROR: $status";
+			$status_message .= "\n\n$content\n\n";
 			if ( $status != 404 && $status != 403)
 				$this->available = false;
-			$logger->logStatus($status_message, get_class($this) );		
+			$logger->logStatus($status_message, get_class($this) );
 			$status_message = "";
 		} else {
 			$status_message = "API request: ".$url;
 			if (sizeof($args)>0)
 				$status_message .= "?";
-			foreach ($args as $key => $value) 
+			foreach ($args as $key => $value)
 				$status_message .= $key."=".$value."&";
 		}
 
-		$logger->logStatus($status_message, get_class($this) );		
+		$logger->logStatus($status_message, get_class($this) );
 		$status_message = "";
 
 		if ( $url != "https://twitter.com/account/rate_limit_status.xml") {
 			$status_message = $this->getStatus();
-			$logger->logStatus($status_message, get_class($this) );		
+			$logger->logStatus($status_message, get_class($this) );
 			$status_message = "";
 		}
-				
+
 		return array($status,$content);
-	
+
 	}
-	
+
 	function getStatus() {
 		return $this->available_api_calls_for_twitter." of ". $this->api_hourly_limit." API calls left this hour; ". round($this->available_api_calls_for_crawler) . " for crawler until ". date('H:i:s', (int) $this->next_api_reset);
 
-	}	
+	}
 }
-?>

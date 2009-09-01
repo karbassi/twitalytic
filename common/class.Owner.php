@@ -7,7 +7,6 @@ class Owner {
 	var $user_email;
 	var $is_admin = false;
 
-
 	function Owner($val) {
 		$this-> id = $val["id"];
 		$this-> user_name = $val["user_name"];
@@ -16,26 +15,24 @@ class Owner {
 		if ($val['is_admin'] == 1)
 			$this-> is_admin = true;
 	}
-	
+
 }
 
 class OwnerDAO {
+	global $TWITALYTIC_CFG;
+
 	function getByEmail($email) {
-		$q		= "
-			SELECT 
-				* 
+		$q = "
+			SELECT
+				*
 			FROM
-				owners o 
-			WHERE 
+				" . $TWITALYTIC_CFG['table_prefix'] . "owners o
+			WHERE
 				o.user_email = '". $email. "';";
+
 		$sql_result = Database::exec($q);
 		$row = mysql_fetch_assoc($sql_result);
-		mysql_free_result($sql_result);	
-		return new Owner($row);		
-		
+		mysql_free_result($sql_result);
+		return new Owner($row);
 	}
-	
 }
-
-
-?>

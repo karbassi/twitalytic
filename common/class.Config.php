@@ -14,12 +14,12 @@ class Config {
 	var $log_location;
 	var $app_title;
 	var $flickr_api_key;
-		
+
 	function Config($twitter_username=null, $twitter_user_id=null) {
 		global $TWITALYTIC_CFG;
 		$this->site_root_path=$TWITALYTIC_CFG['site_root_path'];
 		$this->debug=$TWITALYTIC_CFG['debug'];
-		
+
 		$this->twitter_username=$twitter_username;
 		$this->twitter_user_id=$twitter_user_id;
 		$this->site_root_path=$TWITALYTIC_CFG['site_root_path'];
@@ -31,14 +31,14 @@ class Config {
 		$this->log_location = $TWITALYTIC_CFG['log_location'];
 		$this->app_title = $TWITALYTIC_CFG['app_title'];
 
-		if (isset($TWITALYTIC_CFG['flickr_api_key'])) 
+		if (isset($TWITALYTIC_CFG['flickr_api_key']))
 			$this->flickr_api_key = $TWITALYTIC_CFG['flickr_api_key'];
 		else
 			$this->flickr_api_key = '';
 
-		if (isset($_SERVER["SERVER_NAME"])) 
+		if (isset($_SERVER["SERVER_NAME"]))
 			$this->webapp_home = "http://".$_SERVER["SERVER_NAME"].$this->site_root_path;
-		
+
 
 		//putenv($TWITALYTIC_CFG['time_zone']);
 
@@ -46,9 +46,5 @@ class Config {
 			ini_set("display_errors", 1);
 			ini_set("error_reporting", E_ALL);
 		}
-
 	}
-
 }
-
-?>

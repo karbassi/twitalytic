@@ -26,13 +26,11 @@ class LongUrlAPIAccessor {
 			$encoded_params[] = urlencode($k).'='.urlencode($v);
 
 		$api_call = $this->api_url.implode('&', $encoded_params);
-		
+
 		$resp = Utils::curl_get_file_contents($api_call);
 		if ( $resp==false )
 			return null;
 		else
 			return unserialize($resp);
-
 	}
 }
-?>

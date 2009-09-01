@@ -8,9 +8,7 @@ class Link {
 	var $clicks;
 	var $status_id;
 	var $is_image;
-
 	var $img_src; //optional
-
 	var $container_tweet; //optional
 
 	function Link($val) {
@@ -26,24 +24,22 @@ class Link {
 
 		if (isset($val["status_id"]))
 			$this->status_id = $val["status_id"];
-		
+
 		if (isset($val["is_image"]) && $val["is_image"] == 1 )
 			$this->is_image = true;
 		else
 			$this->is_image = false;
 
-
 		//TODO: Get more image services to work, like yfrog, TwitGoo, Twidroid, img.ly, etc.
-		//if ( substr($this->url, 0, strlen('http://yfrog.com/')) == 'http://yfrog.com/' ) 
+		//if ( substr($this->url, 0, strlen('http://yfrog.com/')) == 'http://yfrog.com/' )
 			//$this->img_src = 'http://twitpic.com/show/mini/'.substr($this->url, strlen('http://yfrog.com/'));
 			//http://img243.yfrog.com/i/xae.jpg/
 			//http://img243.yfrog.com/img243/3258/xae.jpg
-
 	}
-	
 }
 
 class LinkDAO {
+	global $TWITALYTIC_CFG;
 
 	function insert($url, $expanded, $title, $status_id, $is_image=0) {
 		$expanded = mysql_real_escape_string($expanded);
@@ -51,8 +47,8 @@ class LinkDAO {
 
 		$q = "
 			INSERT INTO
-				links (url, expanded_url, title, status_id, is_image)
-				VALUES (
+				" . $TWITALYTIC_CFG['table_prefix'] . "links (url, expanded_url, title, status_id, is_image)
+			VALUES (
 					'{$url}', '{$expanded}', '{$title}', ".$status_id.", ".$is_image.");";
 
 		$foo = Database::exec($q);
@@ -62,15 +58,18 @@ class LinkDAO {
 			return false;
 	}
 
-
-
 	function update($url, $expanded, $title, $status_id, $is_image=0) {
 		$expanded = mysql_real_escape_string($expanded);
 		$title = mysql_real_escape_string($title);
 
 		$q = "
-			UPDATE links 
-			SET expanded_url = '{$expanded}', title = '{$title}', status_id=".$status_id.", is_image=".$is_image."
+			UPDATE
+				" . $TWITALYTIC_CFG['table_prefix'] . "
+			SET
+				expanded_url = '{$expanded}',
+				title = '{$title}',
+				status_id=".$status_id.",
+				is_image=".$is_image."
 			WHERE url = '{$url}';";
 
 		$foo = Database::exec($q);
@@ -80,56 +79,71 @@ class LinkDAO {
 			return false;
 	}
 
-
 	function getLinksByFriends($user_id) {
 		$q = "
-			SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date  
-			FROM links l
-			INNER JOIN tweets t
-			ON t.status_id = l.status_id
-			WHERE t.author_user_id in (SELECT user_id FROM follows f WHERE f.follower_id = ".$user_id.")
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+			SELECT
+				l.*, t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			ON
+				t.status_id = l.status_id
+			WHERE
+				t.author_user_id in (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "follows f WHERE f.follower_id = ".$user_id.")
+			ORDER BY
+				l.status_id DESC
+			LIMIT
+				15";
+
 		$sql_result = Database::exec($q);
 		$links = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $l = new Link($row); $l->container_tweet = new Tweet($row); $links[] = $l; }
-		mysql_free_result($sql_result);	
-		return $links;	
+		mysql_free_result($sql_result);
+		return $links;
 	}
 
 	function getPhotosByFriends($user_id) {
 		$q = "
-			SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date  
-			FROM links l
-			INNER JOIN tweets t
-			ON t.status_id = l.status_id
-			WHERE is_image = 1 and t.author_user_id in (SELECT user_id FROM follows f WHERE f.follower_id = ".$user_id.")
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+			SELECT
+				l.*, t.*, pub_date - interval 8 hour as adj_pub_date
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+			INNER JOIN
+				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+			ON
+				t.status_id = l.status_id
+			WHERE
+				is_image = 1 and t.author_user_id in (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "follows f WHERE f.follower_id = ".$user_id.")
+			ORDER BY
+				l.status_id DESC
+			LIMIT
+				15";
+
 		$sql_result = Database::exec($q);
 		$links = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $l = new Link($row); $l->container_tweet = new Tweet($row); $links[] = $l; }
-		mysql_free_result($sql_result);	
-		return $links;	
+		mysql_free_result($sql_result);
+		return $links;
 	}
 
 	function getLinksToUpdate() {
 		$q = "
-			SELECT l.*
-			FROM links l
-			WHERE /*l.expanded_url = '' and */(l.url like '%flic.kr%' OR l.url like '%twitpic%') and is_image = 0
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+			SELECT
+				l.*
+			FROM
+				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+			WHERE
+				/*l.expanded_url = '' and */(l.url like '%flic.kr%' OR l.url like '%twitpic%') and is_image = 0
+			ORDER BY
+				l.status_id DESC
+			LIMIT
+				15";
+
 		$sql_result = Database::exec($q);
 		$links = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $links[] = $row; }
-		mysql_free_result($sql_result);	
-		return $links;	
+		mysql_free_result($sql_result);
+		return $links;
 	}
-
 }
-
-?>
