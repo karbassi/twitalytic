@@ -39,7 +39,7 @@ class Link {
 }
 
 class LinkDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	function insert($url, $expanded, $title, $status_id, $is_image=0) {
 		$expanded = mysql_real_escape_string($expanded);
@@ -47,7 +47,7 @@ class LinkDAO {
 
 		$q = "
 			INSERT INTO
-				" . $TWITALYTIC_CFG['table_prefix'] . "links (url, expanded_url, title, status_id, is_image)
+				" . $this->cfg->table_prefix . "links (url, expanded_url, title, status_id, is_image)
 			VALUES (
 					'{$url}', '{$expanded}', '{$title}', ".$status_id.", ".$is_image.");";
 
@@ -64,7 +64,7 @@ class LinkDAO {
 
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "
+				" . $this->cfg->table_prefix . "
 			SET
 				expanded_url = '{$expanded}',
 				title = '{$title}',
@@ -84,13 +84,13 @@ class LinkDAO {
 			SELECT
 				l.*, t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+				" . $this->cfg->table_prefix . "links l
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			ON
 				t.status_id = l.status_id
 			WHERE
-				t.author_user_id in (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "follows f WHERE f.follower_id = ".$user_id.")
+				t.author_user_id in (SELECT user_id FROM " . $this->cfg->table_prefix . "follows f WHERE f.follower_id = ".$user_id.")
 			ORDER BY
 				l.status_id DESC
 			LIMIT
@@ -108,13 +108,13 @@ class LinkDAO {
 			SELECT
 				l.*, t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+				" . $this->cfg->table_prefix . "links l
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			ON
 				t.status_id = l.status_id
 			WHERE
-				is_image = 1 and t.author_user_id in (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "follows f WHERE f.follower_id = ".$user_id.")
+				is_image = 1 and t.author_user_id in (SELECT user_id FROM " . $this->cfg->table_prefix . "follows f WHERE f.follower_id = ".$user_id.")
 			ORDER BY
 				l.status_id DESC
 			LIMIT
@@ -132,7 +132,7 @@ class LinkDAO {
 			SELECT
 				l.*
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "links l
+				" . $this->cfg->table_prefix . "links l
 			WHERE
 				/*l.expanded_url = '' and */(l.url like '%flic.kr%' OR l.url like '%twitpic%') and is_image = 0
 			ORDER BY

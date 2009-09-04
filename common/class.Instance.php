@@ -23,8 +23,6 @@ class Instance {
 	var $avg_replies_per_day;
 	var $is_public = false;
 
-	global $TWITALYTIC_CFG;
-
 	function Instance($r) {
 		$this->id = $r["id"];
 		$this->twitter_username = $r['twitter_username'];
@@ -58,6 +56,7 @@ class Instance {
 }
 
 class InstanceDAO {
+	$cfg = new Config();
 
 	function getInstanceStalestOne() {
 		return $this->getInstanceOneByLastRun("ASC");
@@ -70,7 +69,7 @@ class InstanceDAO {
 	function insert($id, $user) {
 		$q = "
 			INSERT INTO
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances (`twitter_user_id`, `twitter_username`)
+				" . $this->cfg->table_prefix . "instances (`twitter_user_id`, `twitter_username`)
 			VALUES
 				(".$id." , '".$user."')";
 		$sql_result = Database::exec($q);
@@ -85,9 +84,9 @@ class InstanceDAO {
 			SELECT
 				* , ". $this->getAverageReplyCount() ."
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
+				" . $this->cfg->table_prefix . "instances i
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances oi
+				" . $this->cfg->table_prefix . "owner_instances oi
 			ON
 				i.id = oi.instance_id
 			WHERE
@@ -111,7 +110,7 @@ class InstanceDAO {
 			SELECT , ". $this->getAverageReplyCount() ."
 				*
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			ORDER BY
 				crawler_last_run
 			".$order." LIMIT 1";
@@ -127,7 +126,7 @@ class InstanceDAO {
 			SELECT
 				* , ". $this->getAverageReplyCount() ."
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			WHERE
 				twitter_username = '".$username."'";
 		$sql_result = Database::exec($q);
@@ -145,7 +144,7 @@ class InstanceDAO {
 	function updateLastRun($id) {
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			SET
 				crawler_last_run = NOW()
 			WHERE
@@ -157,7 +156,7 @@ class InstanceDAO {
 	function setPublic($u, $p) {
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			SET
 				is_public = ".$p."
 			WHERE
@@ -188,22 +187,22 @@ class InstanceDAO {
 
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			SET
 				".$lsi."
 				last_page_fetched_followers = ".$i->last_page_fetched_followers.",
 				last_page_fetched_replies = ".$i->last_page_fetched_replies.",
 				last_page_fetched_tweets = ".$i->last_page_fetched_tweets.",
 				crawler_last_run = NOW(),
-				total_tweets_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where author_user_id=".$i->twitter_user_id."),
+				total_tweets_in_system = (select count(*) from " . $this->cfg->table_prefix . "tweets where author_user_id=".$i->twitter_user_id."),
 				".$owner_tweets."
-				total_replies_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where tweet_text like '%@".$i->twitter_username."%'),
-				total_follows_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "follows where user_id=".$i->twitter_user_id." and active=1),
-				total_users_in_system = (select count(*) from " . $TWITALYTIC_CFG['table_prefix'] . "users),
+				total_replies_in_system = (select count(*) from " . $this->cfg->table_prefix . "tweets where tweet_text like '%@".$i->twitter_username."%'),
+				total_follows_in_system = (select count(*) from " . $this->cfg->table_prefix . "follows where user_id=".$i->twitter_user_id." and active=1),
+				total_users_in_system = (select count(*) from " . $this->cfg->table_prefix . "users),
 				is_archive_loaded_follows = ". $is_archive_loaded_follows .",
 				is_archive_loaded_replies = ". $is_archive_loaded_replies .",
-				earliest_reply_in_system = (select pub_date from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where tweet_text like '%@".$i->twitter_username."%' order by pub_date asc limit 1),
-				earliest_tweet_in_system = (select pub_date from " . $TWITALYTIC_CFG['table_prefix'] . "tweets where author_user_id = ".$i->twitter_user_id." order by pub_date asc limit 1)
+				earliest_reply_in_system = (select pub_date from " . $this->cfg->table_prefix . "tweets where tweet_text like '%@".$i->twitter_username."%' order by pub_date asc limit 1),
+				earliest_tweet_in_system = (select pub_date from " . $this->cfg->table_prefix . "tweets where author_user_id = ".$i->twitter_user_id." order by pub_date asc limit 1)
 			WHERE
 				twitter_user_id = ".$i->twitter_user_id.";";
 		$foo = Database::exec($q);
@@ -219,7 +218,7 @@ class InstanceDAO {
 			SELECT
 				twitter_username
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			WHERE
 				twitter_username = '".$un."'";
 		$sql_result = Database::exec($q);
@@ -238,7 +237,7 @@ class InstanceDAO {
 			SELECT
 				*, ". $this->getAverageReplyCount() ."
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances
+				" . $this->cfg->table_prefix . "instances
 			ORDER BY
 				crawler_last_run
 			".$last_run."";
@@ -255,7 +254,7 @@ class InstanceDAO {
 				SELECT
 					*, ". $this->getAverageReplyCount() ."
 				FROM
-					" . $TWITALYTIC_CFG['table_prefix'] . "instances i
+					" . $this->cfg->table_prefix . "instances i
 				ORDER BY
 					crawler_last_run
 				DESC;";
@@ -264,7 +263,7 @@ class InstanceDAO {
 				SELECT
 					*, ". $this->getAverageReplyCount() ."
 				FROM
-					" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances oi
+					" . $this->cfg->table_prefix . "owner_instances oi
 				INNER JOIN
 					instances i
 				ON

@@ -43,7 +43,7 @@ class Tweet {
 }
 
 class TweetDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	function getTweet($status_id) {
 		//TODO Fix hardcoded adjusted pub_date
@@ -51,7 +51,7 @@ class TweetDAO {
 			SELECT
 				t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			WHERE
 			 	status_id=".$status_id.";";
 
@@ -73,9 +73,9 @@ class TweetDAO {
 			SELECT
 				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				t.author_user_id = u.user_id
 			WHERE
@@ -105,9 +105,9 @@ class TweetDAO {
 			SELECT
 				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				t.author_user_id = u.user_id
 			WHERE
@@ -132,9 +132,9 @@ class TweetDAO {
 			SELECT
 				t1.author_username as questioner, t1.author_avatar as questioner_avatar, t1.status_id, t1.tweet_html as question, t1.pub_date - interval 8 hour as question_adj_pub_date, t.author_username as answerer, t.author_avatar as answerer_avatar, t.tweet_html as answer, t.pub_date - interval 8 hour as answer_adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t1
+				" . $this->cfg->table_prefix . "tweets t1
 			ON
 				t1.status_id = t.in_reply_to_status_id
 			WHERE
@@ -159,9 +159,9 @@ class TweetDAO {
 			SELECT
 				t1.author_username as questioner, t1.author_avatar as questioner_avatar, t1.status_id, t1.tweet_html as question, t1.pub_date - interval 8 hour as question_adj_pub_date, t.author_username as answerer, t.author_avatar as answerer_avatar, t.tweet_html as answer, t.pub_date - interval 8 hour as answer_adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t1
+				" . $this->cfg->table_prefix . "tweets t1
 			ON
 				t1.status_id = t.in_reply_to_status_id
 			WHERE
@@ -206,7 +206,7 @@ class TweetDAO {
 
 			$q = "
 				INSERT INTO
-					" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+					" . $this->cfg->table_prefix . "tweets
 					(status_id,
 					author_username,author_fullname,author_avatar,author_user_id,
 					tweet_text,tweet_html,pub_date,in_reply_to_user_id,in_reply_to_status_id,source)
@@ -237,7 +237,7 @@ class TweetDAO {
 			SELECT
 				status_id
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			WHERE status_id = ".$status_id;
 		$sql_result = Database::exec($q);
 		if ( mysql_num_rows($sql_result) > 0 )
@@ -251,7 +251,7 @@ class TweetDAO {
 			SELECT
 				status_id
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			WHERE
 				status_id = ".$status_id;
 		$sql_result = Database::exec($q);
@@ -264,7 +264,7 @@ class TweetDAO {
 	function incrementReplyCountCache($status_id) {
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			SET
 				reply_count_cache = reply_count_cache + 1
 			WHERE
@@ -277,7 +277,7 @@ class TweetDAO {
 	function decrementReplyCountCache($status_id) {
 		$q = "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			SET
 				reply_count_cache = reply_count_cache - 1
 			WHERE
@@ -294,7 +294,7 @@ class TweetDAO {
 			SELECT
 				t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			WHERE
 				author_user_id = ".$author_id."
 			ORDER BY
@@ -314,7 +314,7 @@ class TweetDAO {
 			SELECT
 				t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			WHERE
 				author_username = '".$username."'
 			ORDER BY
@@ -331,7 +331,7 @@ class TweetDAO {
 			SELECT
 				source, count(source) as total
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			WHERE
 				author_user_id = ".$author_id."
 			GROUP BY source
@@ -350,9 +350,9 @@ class TweetDAO {
 			SELECT
 				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				t.author_user_id = u.user_id
 			WHERE
@@ -376,9 +376,9 @@ class TweetDAO {
 			SELECT
 				t.*, u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				t.author_user_id = u.user_id
 			WHERE
@@ -400,7 +400,7 @@ class TweetDAO {
 			SELECT
 				t.* , pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			WHERE
 				author_user_id = ".$user_id."
 			ORDER BY
@@ -421,9 +421,9 @@ class TweetDAO {
 			SELECT
 				t.* , u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = t.author_user_id
 			WHERE
@@ -447,9 +447,9 @@ class TweetDAO {
 			SELECT
 				t.* , u.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				t.author_user_id = u.user_id
 			WHERE
@@ -475,7 +475,7 @@ class TweetDAO {
 	function assignParent($parent_id, $orphan_id, $former_parent_id=-1) {
 		$q		= "
 			UPDATE
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets
+				" . $this->cfg->table_prefix . "tweets
 			SET
 				in_reply_to_status_id = ".$parent_id."
 			WHERE
@@ -493,7 +493,7 @@ class TweetDAO {
 			SELECT
 				in_reply_to_status_id
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			WHERE
 				t.author_user_id=".$author_id."
 				AND t.in_reply_to_status_id NOT IN (select status_id from tweets)
@@ -510,9 +510,9 @@ class TweetDAO {
 			SELECT
 				t.*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
+				" . $this->cfg->table_prefix . "instances i
 			ON
 				t.author_user_id = i.twitter_user_id
 			WHERE
@@ -532,9 +532,9 @@ class TweetDAO {
 			SELECT
 				*, pub_date - interval 8 hour as adj_pub_date
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweets t
+				" . $this->cfg->table_prefix . "tweets t
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "instances i
+				" . $this->cfg->table_prefix . "instances i
 			ON
 				t.author_user_id = i.twitter_user_id
 			WHERE
@@ -556,7 +556,7 @@ class TweetErrorDAO {
 	function insertError($id, $error_code, $error_text, $issued_to) {
 		$q = "
 			INSERT INTO
-				" . $TWITALYTIC_CFG['table_prefix'] . "tweet_errors (status_id, error_code, error_text, error_issued_to_user_id)
+				" . $this->cfg->table_prefix . "tweet_errors (status_id, error_code, error_text, error_issued_to_user_id)
 			VALUES
 				(".$id.", ".$error_code.", '".$error_text."', ".$issued_to.") ";
 		$sql_result = Database::exec($q);

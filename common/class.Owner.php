@@ -19,14 +19,14 @@ class Owner {
 }
 
 class OwnerDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	function getByEmail($email) {
 		$q = "
 			SELECT
 				*
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "owners o
+				" . $this->cfg->table_prefix . "owners o
 			WHERE
 				o.user_email = '". $email. "';";
 

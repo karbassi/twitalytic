@@ -50,7 +50,7 @@ class User {
 }
 
 class UserDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	private function getAverageTweetCount() {
 		return "round(tweet_count/(datediff(curdate(), joined)), 2) as avg_tweets_per_day";
@@ -61,7 +61,7 @@ class UserDAO {
 			SELECT
 				user_id
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users
+				" . $this->cfg->table_prefix . "users
 			WHERE
 				user_id = ".$user_id;
 		$sql_result = Database::exec($q);
@@ -76,7 +76,7 @@ class UserDAO {
 			SELECT
 				user_id
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users
+				" . $this->cfg->table_prefix . "users
 			WHERE
 				user_name = '".$username."'";
 		$sql_result = Database::exec($q);
@@ -112,7 +112,7 @@ class UserDAO {
 
 		$q = "
 			INSERT INTO
-				" . $TWITALYTIC_CFG['table_prefix'] . "users (user_id,
+				" . $this->cfg->table_prefix . "users (user_id,
 					user_name,full_name,avatar,location,
 					description, url, is_protected,
 					follower_count, tweet_count, ". ($has_friend_count ? "friend_count, " : "")."
@@ -163,7 +163,7 @@ class UserDAO {
 			SELECT
 				* , ". $this->getAverageTweetCount()."
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			WHERE
 				u.user_id = ". $user_id. ";";
 		$sql_result = Database::exec($q);
@@ -177,7 +177,7 @@ class UserDAO {
 			SELECT
 				* , ". $this->getAverageTweetCount()."
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			WHERE
 				u.user_name = '". $user_name. "';";
 		$sql_result = Database::exec($q);
@@ -192,7 +192,7 @@ class UserErrorDAO {
 	function insertError($id, $error_code, $error_text, $issued_to) {
 		$q = "
 			INSERT INTO
-			 	" . $TWITALYTIC_CFG['table_prefix'] . "user_errors (user_id, error_code, error_text, error_issued_to_user_id)
+			 	" . $this->cfg->table_prefix . "user_errors (user_id, error_code, error_text, error_issued_to_user_id)
 			VALUES
 				(".$id.", ".$error_code.", '".$error_text."', ".$issued_to.") ";
 		$sql_result = Database::exec($q);

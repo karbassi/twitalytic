@@ -12,7 +12,7 @@ class OwnerInstance {
 }
 
 class OwnerInstanceDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	function doesOwnerHaveAccess($owner, $username) {
 		if ($owner->is_admin) {
@@ -22,9 +22,9 @@ class OwnerInstanceDAO {
 				SELECT
 					*
 				FROM
-					" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances oi
+					" . $this->cfg->table_prefix . "owner_instances oi
 				INNER JOIN
-					" . $TWITALYTIC_CFG['table_prefix'] . "instances i
+					" . $this->cfg->table_prefix . "instances i
 				ON
 					i.id = oi.instance_id
 				WHERE
@@ -43,7 +43,7 @@ class OwnerInstanceDAO {
 			SELECT
 				*
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances
+				" . $this->cfg->table_prefix . "owner_instances
 			WHERE
 				owner_id = ".$owner_id." AND instance_id = ".$instance_id. ";";
 		$sql_result =Database::exec($q);
@@ -61,7 +61,7 @@ class OwnerInstanceDAO {
 	function insert($owner_id, $instance_id, $oauth_token, $oauth_token_secret) {
 		$q = "
 			INSERT INTO
-				" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances (`owner_id`, `instance_id`, `oauth_access_token`, `oauth_access_token_secret`)
+				" . $this->cfg->table_prefix . "owner_instances (`owner_id`, `instance_id`, `oauth_access_token`, `oauth_access_token_secret`)
 			VALUES
 				(".$owner_id.", ".$instance_id.", '".$oauth_token."', '". $oauth_token_secret."')";
 		$sql_result = Database::exec($q);
@@ -72,7 +72,7 @@ class OwnerInstanceDAO {
 			SELECT
 				oauth_access_token, oauth_access_token_secret
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "owner_instances
+				" . $this->cfg->table_prefix . "owner_instances
 			WHERE
 				instance_id = ".$id." ORDER BY id ASC LIMIT 1;";
 		$sql_result = Database::exec($q);

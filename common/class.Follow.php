@@ -7,14 +7,14 @@ class Follow {
 }
 
 class FollowDAO {
-	global $TWITALYTIC_CFG;
+	$cfg = new Config();
 
 	function followExists($user_id, $follower_id) {
 		$q = "
 			SELECT
 				user_id, follower_id
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows
+			FROM
+				" . $this->cfg->table_prefix . "follows
 			WHERE
 				user_id = " . $user_id . " AND follower_id=" . $follower_id . ";";
 
@@ -27,8 +27,8 @@ class FollowDAO {
 
 	function update($user_id, $follower_id) {
 		$q = "
-			UPDATE 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows
+			UPDATE
+				" . $this->cfg->table_prefix . "follows
 			SET
 				last_seen=NOW()
 			WHERE
@@ -42,8 +42,8 @@ class FollowDAO {
 
 	function deactivate($user_id, $follower_id) {
 		$q = "
-			UPDATE 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows
+			UPDATE
+				" . $this->cfg->table_prefix . "follows
 			SET
 				active = 0
 			WHERE
@@ -57,8 +57,8 @@ class FollowDAO {
 
 	function insert($user_id, $follower_id) {
 		$q = "
-			INSERT INTO 
-				". $TWITALYTIC_CFG['table_prefix'] . "follows (user_id, follower_id, last_seen)
+			INSERT INTO
+				". $this->cfg->table_prefix . "follows (user_id, follower_id, last_seen)
 			VALUES (
 				" . $user_id . "," . $follower_id . ",NOW()
 			);";
@@ -73,12 +73,12 @@ class FollowDAO {
 		$q = "
 			SELECT
 				follower_id
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "follows f
 			WHERE
 				f.user_id=" . $user_id . "
-				AND f.follower_id NOT IN (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "users)
-				AND f.follower_id NOT IN (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "user_errors)
+				AND f.follower_id NOT IN (SELECT user_id FROM " . $this->cfg->table_prefix . "users)
+				AND f.follower_id NOT IN (SELECT user_id FROM " . $this->cfg->table_prefix . "user_errors)
 			LIMIT 100;";
 		$sql_result = Database::exec($q);
 		$strays = array();
@@ -91,11 +91,11 @@ class FollowDAO {
 		$q = "
 			SELECT
 				count(follower_id) as follows_with_errors
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "follows f
 			WHERE
 				f.user_id=" . $user_id . "
-				AND f.follower_id IN (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "user_errors WHERE error_issued_to_user_id=" . $user_id . ");";
+				AND f.follower_id IN (SELECT user_id FROM " . $this->cfg->table_prefix . "user_errors WHERE error_issued_to_user_id=" . $user_id . ");";
 		$sql_result = Database::exec($q);
 		$ferrors = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $ferrors[] = $row; }
@@ -108,11 +108,11 @@ class FollowDAO {
 		$q = "
 			SELECT
 				count(follower_id) as friends_with_errors
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "follows f
 			WHERE
 				f.follower_id=" . $user_id . "
-				AND f.user_id IN (SELECT user_id FROM " . $TWITALYTIC_CFG['table_prefix'] . "user_errors WHERE error_issued_to_user_id=" . $user_id . ");";
+				AND f.user_id IN (SELECT user_id FROM " . $this->cfg->table_prefix . "user_errors WHERE error_issued_to_user_id=" . $user_id . ");";
 		$sql_result = Database::exec($q);
 		$ferrors = array();
 		while ($row = mysql_fetch_assoc($sql_result)) { $ferrors[] = $row; }
@@ -126,9 +126,9 @@ class FollowDAO {
 			SELECT
 				count( * ) as follows_with_details
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+				" . $this->cfg->table_prefix . "follows f
 			INNER JOIN
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = f.follower_id
 			WHERE
@@ -144,10 +144,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				count( * ) as follows_protected
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			FROM
+				" . $this->cfg->table_prefix . "follows f
+			INNER JOIN
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = f.follower_id
 			WHERE
@@ -163,10 +163,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				count( * ) as total_friends
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			FROM
+				" . $this->cfg->table_prefix . "follows f
+			INNER JOIN
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = f.user_id
 			WHERE
@@ -182,10 +182,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				count( * ) as friends_protected
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			FROM
+				" . $this->cfg->table_prefix . "follows f
+			INNER JOIN
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = f.user_id
 			WHERE
@@ -201,10 +201,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				u.*
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -230,8 +230,8 @@ class FollowDAO {
 		$q = "
 			SELECT
 				user_id as followee_id, follower_id
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "follows f
 			WHERE
 				active = 1
 			ORDER BY
@@ -252,10 +252,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				* , " . $this->getAverageTweetCount() . "
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				u.user_id = f.follower_id
 			WHERE
@@ -278,10 +278,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				*, ROUND(100*friend_count/follower_count,4) AS LikelihoodOfFollow, " . $this->getAverageTweetCount() . "
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				u.user_id = f.follower_id
 			WHERE
@@ -302,10 +302,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				*, " . $this->getAverageTweetCount() . "
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				u.user_id = f.follower_id
 			WHERE
@@ -327,10 +327,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				*, " . $this->getAverageTweetCount() . "
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -352,10 +352,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				*
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -377,10 +377,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				u.*
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+			FROM
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.follower_id = u.user_id
 			WHERE
@@ -403,9 +403,9 @@ class FollowDAO {
 			SELECT
 				*, " . $this->getAverageTweetCount() . "
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -428,9 +428,9 @@ class FollowDAO {
 			SELECT
 				*, " . $this->getAverageTweetCount() . "
 			FROM
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
+				" . $this->cfg->table_prefix . "users u
+			INNER JOIN
+				" . $this->cfg->table_prefix . "follows f
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -452,10 +452,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				u.*, " . $this->getAverageTweetCount() . "
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			FROM
+				" . $this->cfg->table_prefix . "follows f
+			INNER JOIN
+				" . $this->cfg->table_prefix . "users u
 			ON
 				u.user_id = f.user_id
 			WHERE
@@ -463,8 +463,8 @@ class FollowDAO {
 				AND f.user_id IN
 				(SELECT
 					user_id
-				FROM 
-					" . $TWITALYTIC_CFG['table_prefix'] . "follows
+				FROM
+					" . $this->cfg->table_prefix . "follows
 				WHERE follower_id = " . $uid . " and active=1)
 			ORDER BY
 				follower_count ASC;";
@@ -481,10 +481,10 @@ class FollowDAO {
 		$q = "
 			SELECT
 				u.*
-			FROM 
-				" . $TWITALYTIC_CFG['table_prefix'] . "follows f
-			INNER JOIN 
-				" . $TWITALYTIC_CFG['table_prefix'] . "users u
+			FROM
+				" . $this->cfg->table_prefix . "follows f
+			INNER JOIN
+				" . $this->cfg->table_prefix . "users u
 			ON
 				f.user_id = u.user_id
 			WHERE
@@ -492,8 +492,8 @@ class FollowDAO {
 				AND f.user_id NOT IN (
 					SELECT
 						follower_id
-					FROM 
-						" . $TWITALYTIC_CFG['table_prefix'] . "follows
+					FROM
+						" . $this->cfg->table_prefix . "follows
 					WHERE user_id = " . $uid . "
 				)
 			ORDER BY follower_count ";
