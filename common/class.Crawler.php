@@ -169,8 +169,7 @@ class Crawler {
 		}
 
 	}
-
-	private function fetchAndAddTweetRepliedTo($tid, $td, $api, $logger) {
+	private function fetchAndAddTweetRepliedTo($tid, $td, $api, $logger, $cfg) {
 		//fetch tweet from Twitter and add to DB
 		$status_message = "";
 		$tweet_deets 	= str_replace("[id]",$tid,$api->cURL_source['show_tweet']);
@@ -480,7 +479,7 @@ class Crawler {
 
 					foreach($users as $u) {
 						$utu = new User($u, 'Friends');
-						//$this->ud->updateUser($utu, $logger);
+						$this->ud->updateUser($utu, $logger);
 
 						# add/update follow relationship
 						if ( $fd->followExists($utu->user_id, $this->instance->twitter_user_id ) ) {
@@ -598,7 +597,7 @@ class Crawler {
 
 		foreach ($strays as $s) {
 			if ( $api->available && $api->available_api_calls_for_crawler > 0 )
-				$this->fetchAndAddTweetRepliedTo($s['in_reply_to_status_id'], $td, $api, $logger);
+				$this->fetchAndAddTweetRepliedTo($s['in_reply_to_status_id'], $td, $api, $logger, $cfg);
 		}
 	}
 
