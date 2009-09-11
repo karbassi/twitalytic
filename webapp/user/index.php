@@ -8,13 +8,13 @@ require_once('config.webapp.inc.php');
 ini_set("include_path", ini_get("include_path").PATH_SEPARATOR.$INCLUDE_PATH);
 require_once("init.php");
 
-$db = new Database();
+$db = new Database($TWITALYTIC_CFG);
 $conn = $db->getConnection();
 
-$ud = new UserDAO();
-$fd = new FollowDAO();
-$id = new InstanceDAO();
-$td = new TweetDAO();
+$ud = new UserDAO($db);
+$fd = new FollowDAO($db);
+$id = new InstanceDAO($db);
+$td = new TweetDAO($db);
 
 if ( isset($_REQUEST['u']) && $ud->isUserInDBByName($_REQUEST['u']) && isset($_REQUEST['i']) ){
 	$user = $ud->getUserByName($_REQUEST['u']);
