@@ -1,6 +1,6 @@
 BitlyCB.myStatsCallback = function(data) {
 			var results = data.results;
-			
+
 			var links = document.getElementsByTagName('a');
 			for (var i=0; i < links.length; i++) {
 				var a = links[i];
@@ -12,25 +12,25 @@ BitlyCB.myStatsCallback = function(data) {
 						} else {
 							var uc = "";
 						}*/
-						
+
 						uc= "";
-						
-						
+
+
 						if (results.clicks) {
 							var c = results.clicks;
 						} else {
 							var c = "0";
 						}
 						c += " clicks";
-						
-						
+
+
 						var sp = BitlyClient.createElement('span', {'text': " (" + uc + c + ") "});
 						a.parentNode.insertBefore(sp, a.nextSibling);
 					}
 				}
-				
+
 			};
-			
+
 		}
 
 		// wait until page is loaded to call API
@@ -47,7 +47,7 @@ BitlyCB.myStatsCallback = function(data) {
 					}
 				}
 			};
-			
-			
-			
+
+
+
 		});

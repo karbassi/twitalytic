@@ -1,7 +1,7 @@
 var notInTags=['a', 'head', 'noscript', 'option', 'script', 'style', 'title', 'textarea'];
 var res = document.evaluate("//text()[not(ancestor::"+notInTags.join(') and not(ancestor::')+")]",
-	document, null,	XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null); 
-var i, el, l, m, p, span, txt, 
+	document, null,	XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+var i, el, l, m, p, span, txt,
 	urlRE=/((?:https?|ftp):\/\/[^\s'"'<>()]*|[-\w.+]+@(?:[-\w]+\.)+[\w]{2,6})/gi;
 
 for (i=0; el=res.snapshotItem(i); i++) {

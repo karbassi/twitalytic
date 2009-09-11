@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) { header("Location: /session/login.php"); }
 $u = $_GET["u"];
 $p = $_GET["p"];
 if ($p != 1)
-	$p = 0;
+    $p = 0;
 
 chdir("..");
 require_once('config.webapp.inc.php');
@@ -20,7 +20,7 @@ $id = new InstanceDAO($db);
 
 $id->setPublic($u, $p);
 
-$db->closeConnection($conn);	
+$db->closeConnection($conn);
 
 
 ?>

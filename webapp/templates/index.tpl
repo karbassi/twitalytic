@@ -17,15 +17,15 @@
 			<li><a href="#followers">Followers</a></li>
 			<li><a href="#friends">Friends</a></li>
 			<li><a href="#links">Links</a></li>
-		</ul>		
+		</ul>
 
 
 <div class="section" id="updates">
-	
+
 	<div id="top">
 
 		<div id="loading_mentions"><img src="{$cfg->site_root_path}cssjs/images/ui_throbber.gif" alt="Loading..." /></div>
-	
+
 		<ul id="menu">
 			<li id="tweets-all">All</li>
 			<li id="tweets-mostreplies">Most&nbsp;Replied-To</li>
@@ -45,7 +45,7 @@
 	<div id="top">
 
 		<div id="loading"><img src="{$cfg->site_root_path}cssjs/images/ui_throbber.gif" alt="Loading..." /></div>
-	
+
 		<ul id="menu">
 			<li id="mentions-all">All</li>
 			<li id="mentions-allreplies">Replies</li>
@@ -53,7 +53,7 @@
 			<li id="mentions-standalone">Standalone</li>
 		</ul>
 
-		
+
 		<div id="mentions_content"></div>
 
 	<span class="clear"></span>
@@ -62,7 +62,7 @@
 
 <div class="section" id="followers">
 	<div id="top">
-		
+
 		<div id="loading_followers"><img src="{$cfg->site_root_path}cssjs/images/ui_throbber.gif" alt="Loading..." /></div>
 
 		<ul id="menu">
@@ -70,14 +70,14 @@
 			<li id="followers-leastlikely">Least&nbsp;Likely</li>
 			<li id="followers-earliest">Earliest</li>
 			<li id="followers-former">Former</li>
-			
+
 		</ul>
 
 		<div id="followers_content"></div>
 
 	<span class="clear"></span>
 	</div>
-	
+
 </div>
 
 
@@ -85,13 +85,13 @@
 	<div id="top">
 
 		<div id="loading_friends"><img src="{$cfg->site_root_path}cssjs/images/ui_throbber.gif" alt="Loading..." /></div>
-	
+
 		<ul id="menu">
 			<li id="friends-mostactive">Chatterboxes</li>
 			<li id="friends-leastactive">Deadbeats</li>
 			<li id="friends-mostfollowed">Popular</li>
 			<li id="friends-former">Former</li>
-			<li id="friends-notmutual">Not&nbsp;Mutual</li>			
+			<li id="friends-notmutual">Not&nbsp;Mutual</li>
 		</ul>
 
 		<div id="friends_content"></div>
@@ -107,7 +107,7 @@
 	<div id="top">
 
 		<div id="loading_links"><img src="{$cfg->site_root_path}cssjs/images/ui_throbber.gif" alt="Loading..." /></div>
-	
+
 		<ul id="menu">
 			<li id="links-friends">From Friends</li>
 			<li id="links-favorites">From Your Favorites</li>
@@ -161,7 +161,7 @@
 				<li>Retweets per Day</li>
 				<li>Mentions per Day</li>
 				<li>Noise Level by Day</li>
-			</ul>		
+			</ul>
 		</li>
 		<li>People
 			<ul class="submenu">
@@ -173,13 +173,13 @@
 				<li>Messagers</li>
 				<li>Messagees</li>
 				<li>Favoritees</li>
-			</ul>		
+			</ul>
 		</li>
 		<li>Relationships
 			<ul class="submenu">
 				<li>Former Followers</li>
 				<li>Not-Mutual</li>
-			</ul>		
+			</ul>
 		</li>
 	</ul>
 <br /><br />
@@ -192,12 +192,12 @@
 	{if $i->twitter_user_id != $instance->twitter_user_id}
 	<li><a href="?u={$i->twitter_username}">{$i->twitter_username}</a><br /><small>updated {$i->crawler_last_run|relative_datetime}</small></li>
 	{/if}
-	{/foreach}	
+	{/foreach}
 	<li><a href="{$cfg->site_root_path}account/">Add an account&rarr;</a></li>
 </ul>
 {/if}
 </div>
-	
+
 
 
 

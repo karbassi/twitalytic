@@ -1,5 +1,5 @@
 <?php
- 
+
 /** APPLICATION CONFIG **/
 $TWITALYTIC_CFG['debug'] = true;
 $TWITALYTIC_CFG['GMT_offset'] = 7; //Pacific: 7, Eastern: 4
@@ -36,5 +36,5 @@ $TWITALYTIC_CFG['db_user'] = "user";
 $TWITALYTIC_CFG['db_password'] = "s3cret";
 $TWITALYTIC_CFG['db_name'] ="twitalytic";
 $TWITALYTIC_CFG['table_prefix'] = 'ta_';
- 
+
 ?>

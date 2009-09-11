@@ -1,4 +1,4 @@
-<?php 
+<?php
 class Link {
     var $id;
     var $url;
@@ -7,51 +7,51 @@ class Link {
     var $clicks;
     var $status_id;
     var $is_image;
-    
+
     var $img_src; //optional
-    
+
     var $container_tweet; //optional
-    
+
     function Link($val) {
         $this->url = $val["url"];
         if (isset($val["expanded_url"]))
             $this->expanded_url = $val["expanded_url"];
-            
+
         if (isset($val["title"]))
             $this->title = $val["title"];
-            
+
         if (isset($val["clicks"]))
             $this->clicks = $val["clicks"];
-            
+
         if (isset($val["status_id"]))
             $this->status_id = $val["status_id"];
-            
+
         if (isset($val["is_image"]) && $val["is_image"] == 1)
             $this->is_image = true;
         else
             $this->is_image = false;
 
-            
+
         //TODO: Get more image services to work, like Phodroid, img.ly, etc.
     }
-    
+
 }
 
 class LinkDAO extends MySQLDAO {
-	function LinkDAO($database, $logger=null) {
-		parent::MySQLDAO($database, $logger);
-	}
+    function LinkDAO($database, $logger=null) {
+        parent::MySQLDAO($database, $logger);
+    }
 
     function insert($url, $expanded, $title, $status_id, $is_image = 0) {
         $expanded = mysql_real_escape_string($expanded);
         $title = mysql_real_escape_string($title);
-        
+
         $q = "
-			INSERT INTO
-				%prefix%links (url, expanded_url, title, status_id, is_image)
-				VALUES (
-					'{$url}', '{$expanded}', '{$title}', ".$status_id.", ".$is_image.");";
-					
+            INSERT INTO
+                %prefix%links (url, expanded_url, title, status_id, is_image)
+                VALUES (
+                    '{$url}', '{$expanded}', '{$title}', ".$status_id.", ".$is_image.");";
+
         $foo = $this->executeSQL($q);
         if (mysql_affected_rows() > 0)
             return true;
@@ -59,16 +59,16 @@ class LinkDAO extends MySQLDAO {
             return false;
     }
 
-    
+
     function update($url, $expanded, $title, $status_id, $is_image = 0) {
         $expanded = mysql_real_escape_string($expanded);
         $title = mysql_real_escape_string($title);
-        
+
         $q = "
-			UPDATE %prefix%links 
-			SET expanded_url = '{$expanded}', title = '{$title}', status_id=".$status_id.", is_image=".$is_image."
-			WHERE url = '{$url}';";
-			
+            UPDATE %prefix%links
+            SET expanded_url = '{$expanded}', title = '{$title}', status_id=".$status_id.", is_image=".$is_image."
+            WHERE url = '{$url}';";
+
         $foo = $this->executeSQL($q);
         if (mysql_affected_rows() > 0)
             return true;
@@ -76,17 +76,17 @@ class LinkDAO extends MySQLDAO {
             return false;
     }
 
-    
+
     function getLinksByFriends($user_id) {
         $q = "
-			SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date  
-			FROM %prefix%links l
-			INNER JOIN %prefix%tweets t
-			ON t.status_id = l.status_id
-			WHERE t.author_user_id in (SELECT user_id FROM %prefix%follows f WHERE f.follower_id = ".$user_id.")
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+            SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date
+            FROM %prefix%links l
+            INNER JOIN %prefix%tweets t
+            ON t.status_id = l.status_id
+            WHERE t.author_user_id in (SELECT user_id FROM %prefix%follows f WHERE f.follower_id = ".$user_id.")
+            ORDER BY l.status_id DESC
+            LIMIT 15";
+
         $sql_result = $this->executeSQL($q);
         $links = array();
         while ($row = mysql_fetch_assoc($sql_result)) {
@@ -97,17 +97,17 @@ class LinkDAO extends MySQLDAO {
         mysql_free_result($sql_result);
         return $links;
     }
-    
+
     function getPhotosByFriends($user_id) {
         $q = "
-			SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date  
-			FROM %prefix%links l
-			INNER JOIN %prefix%tweets t
-			ON t.status_id = l.status_id
-			WHERE is_image = 1 and t.author_user_id in (SELECT user_id FROM %prefix%follows f WHERE f.follower_id = ".$user_id.")
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+            SELECT l.*, t.*, pub_date - interval 8 hour as adj_pub_date
+            FROM %prefix%links l
+            INNER JOIN %prefix%tweets t
+            ON t.status_id = l.status_id
+            WHERE is_image = 1 and t.author_user_id in (SELECT user_id FROM %prefix%follows f WHERE f.follower_id = ".$user_id.")
+            ORDER BY l.status_id DESC
+            LIMIT 15";
+
         $sql_result = $this->executeSQL($q);
         $links = array();
         while ($row = mysql_fetch_assoc($sql_result)) {
@@ -118,15 +118,15 @@ class LinkDAO extends MySQLDAO {
         mysql_free_result($sql_result);
         return $links;
     }
-    
+
     function getLinksToUpdate() {
         $q = "
-			SELECT l.*
-			FROM %prefix%links l
-			WHERE /*l.expanded_url = '' and */(l.url like '%flic.kr%' OR l.url like '%twitpic%') and is_image = 0
-			ORDER BY l.status_id DESC
-			LIMIT 15";
-			
+            SELECT l.*
+            FROM %prefix%links l
+            WHERE /*l.expanded_url = '' and */(l.url like '%flic.kr%' OR l.url like '%twitpic%') and is_image = 0
+            ORDER BY l.status_id DESC
+            LIMIT 15";
+
         $sql_result = $this->executeSQL($q);
         $links = array();
         while ($row = mysql_fetch_assoc($sql_result)) {
@@ -135,7 +135,7 @@ class LinkDAO extends MySQLDAO {
         mysql_free_result($sql_result);
         return $links;
     }
-    
+
 }
 
 ?>

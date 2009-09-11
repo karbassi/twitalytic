@@ -1,4 +1,4 @@
-<?php 
+<?php
 /*
  * Abraham Williams (abraham@abrah.am) http://abrah.am
  *
@@ -19,13 +19,13 @@ require_once ('OAuth.php');
 class TwitterOAuth {/*{{{*/
     /* Contains the last HTTP status code returned */
     private $http_status;
-    
+
     /* Contains the last API call */
     private $last_api_call;
-    
+
     /* Set up the API root URL */
     public static $TO_API_ROOT = "https://twitter.com";
-    
+
     /**
      * Set API URLS
      */
@@ -38,7 +38,7 @@ class TwitterOAuth {/*{{{*/
     function accessTokenURL() {
         return self::$TO_API_ROOT.'/oauth/access_token';
     }
-    
+
     /**
      * Debug helpers
      */
@@ -48,7 +48,7 @@ class TwitterOAuth {/*{{{*/
     function lastAPICall() {
         return $this->last_api_call;
     }
-    
+
     /**
      * construct TwitterOAuth object
      */
@@ -62,7 +62,7 @@ class TwitterOAuth {/*{{{*/
         }
     }/*}}}*/
 
-    
+
     /**
      * Get a request_token from Twitter
      *
@@ -74,7 +74,7 @@ class TwitterOAuth {/*{{{*/
         $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
         return $token;
     }/*}}}*/
-    
+
     /**
      * Parse a URL-encoded OAuth response
      *
@@ -90,7 +90,7 @@ class TwitterOAuth {/*{{{*/
         }
         return $r;
     }
-    
+
     /**
      * Get the authorize URL
      *
@@ -101,7 +101,7 @@ class TwitterOAuth {/*{{{*/
             $token = $token['oauth_token'];
         return $this->authorizeURL().'?oauth_token='.$token;
     }/*}}}*/
-    
+
     /**
      * Exchange the request token and secret for an access token and
      * secret, to sign API calls.
@@ -115,7 +115,7 @@ class TwitterOAuth {/*{{{*/
         $this->token = new OAuthConsumer($token['oauth_token'], $token['oauth_token_secret']);
         return $token;
     }/*}}}*/
-    
+
     /**
      * Format and sign an OAuth / API request
      */
@@ -131,7 +131,7 @@ class TwitterOAuth {/*{{{*/
                 return $this->http($req->get_normalized_http_url(), $req->to_postdata());
         }
     }/*}}}*/
-    
+
     /**
      * Make an HTTP request
      *

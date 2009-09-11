@@ -10,15 +10,15 @@
 					<li><a href="#instances">Twitter Accounts</a></li>
 					<li><a href="#templates">Templates</a></li>
 					<li><a href="#settings">Settings</a></li>
-					
-				</ul>		
+
+				</ul>
 
 
 		<div class="section" id="instances">
 			<b>Your Twitter accounts</b>
 			<br /><br />
 			{if $owner->is_admin}<p class="info">You are an administrator so you can see all accounts in the system.</p><br /><br />{/if}
-			
+
 			{if count($owner_instances) > 0 }
 			<ul>
 			{foreach from=$owner_instances key=iid item=i}
@@ -30,13 +30,13 @@
 			{/if}
 			<br /><br />
 			<b>Set up a Twitter account</b><br /><br /> <a href="{$oauthorize_link}">Authorize Twitalytic to read your Twitter data&rarr;</a>
-			
+
 		</div>
 
 		<div class="section" id="templates">
 			Template list goes here
 		</div>
-		
+
 		<div class="section" id="settings">
 			Other settings go here
 			<ul>
@@ -54,7 +54,7 @@
 	<div role="contentinfo" id="keystats" class="yui-b">
 
 	<h2>
-		
+
 	</h2>
 	<ul>
 	</ul>
@@ -62,63 +62,63 @@
 
 
 	</div>
-	
+
 
 
 	<script type="text/javascript">
 		{literal}
 		$(function() {
-			$(".btnPub").click(function() {  
-			// validate and process form here  
+			$(".btnPub").click(function() {
+			// validate and process form here
 				var element = $(this);
 				var u = element.attr("id");
-				
-				var dataString = 'u='+ u+ "&p=1";  
-				//alert (dataString);return false;  
-				    $.ajax({  
-				      type: "GET",  
-				      url: "{/literal}{$cfg->site_root_path}{literal}account/toggle-public.php",  
-				      data: dataString,  
-				      success: function() {  
-					$('#div'+u).html("<span class='success' id='message"+u+"'></span>");  
-					$('#message'+u).html("Added to public timeline!") 
-				       .hide()  
-				       .fadeIn(1500, function() {  
-					 $('#message'+u);  
-				       });  
-				    }  
-				   });  
-				   return false;  
+
+				var dataString = 'u='+ u+ "&p=1";
+				//alert (dataString);return false;
+				    $.ajax({
+				      type: "GET",
+				      url: "{/literal}{$cfg->site_root_path}{literal}account/toggle-public.php",
+				      data: dataString,
+				      success: function() {
+					$('#div'+u).html("<span class='success' id='message"+u+"'></span>");
+					$('#message'+u).html("Added to public timeline!")
+				       .hide()
+				       .fadeIn(1500, function() {
+					 $('#message'+u);
+				       });
+				    }
+				   });
+				   return false;
 			  });
-			
-			$(".btnPriv").click(function() {  
-			// validate and process form here  
+
+			$(".btnPriv").click(function() {
+			// validate and process form here
 				var element = $(this);
 				var u = element.attr("id");
 
-				var dataString = 'u='+ u+ "&p=0";  
-				//alert (dataString);return false;  
-				    $.ajax({  
-				      type: "GET",  
-				      url: "{/literal}{$cfg->site_root_path}{literal}account/toggle-public.php",  
-				      data: dataString,  
-				      success: function() {  
-					$('#div'+u).html("<span class='success' id='message"+u+"'></span>");  
-					$('#message'+u).html("Removed from public timeline!") 
-				       .hide()  
-				       .fadeIn(1500, function() {  
-					 $('#message'+u);  
-				       });  
-				    }  
-				   });  
-				   return false;  
-			      });  
-			
-			  
+				var dataString = 'u='+ u+ "&p=0";
+				//alert (dataString);return false;
+				    $.ajax({
+				      type: "GET",
+				      url: "{/literal}{$cfg->site_root_path}{literal}account/toggle-public.php",
+				      data: dataString,
+				      success: function() {
+					$('#div'+u).html("<span class='success' id='message"+u+"'></span>");
+					$('#message'+u).html("Removed from public timeline!")
+				       .hide()
+				       .fadeIn(1500, function() {
+					 $('#message'+u);
+				       });
+				    }
+				   });
+				   return false;
+			      });
 
-		});	
+
+
+		});
 
 		{/literal}
 	</script>
-	
-	{include file="_footer.tpl" stats="no"}			
+
+	{include file="_footer.tpl" stats="no"}

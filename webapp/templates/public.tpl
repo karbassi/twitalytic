@@ -5,32 +5,32 @@
   	<link rel="shortcut icon" href="{$cfg->site_root_path}favicon.ico"/>
 
 	<style type="text/css">{literal}
-	
+
 		html {
 			background: #eeeeea;
 			font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 			font-size:14.5px;
 		}
-		
+
 		a, a:link, a:visited {
 			text-decoration: none;
 			color: #0060e0;
 		}
-		
+
 		a:hover {
 			text-decoration : underline;
 			color : red;
 		}
-		
+
 		a:visited {
 			color : black;
 			text-decoration: underline;
 		}
-		
+
 		h1 {
 			font-size : x-large;
 		}
-		
+
 		h3 {
 			font-weight : 800;
 		}
@@ -45,7 +45,7 @@
 			width:600px;
 			background-color:white;
 			border:solid 1px grey;
-			text-align:left;		
+			text-align:left;
 		}
 		.tweetmeta {
 			text-align:right;
@@ -58,37 +58,37 @@
 			text-decoration:underline;
 		}
 
-		 
+
 		 /******* Tweet Formatting ********/
-		 
+
 		 .individual-tweet {
 		 	padding : 10px;
 		 	margin-top : 10px;
 		 }
-		 
+
 		 .reply {
 		 	padding-left : 85px;
 		 }
-		 
+
 		 .private {
 		 	border : 1px dotted #666;
 		 	background-color : #eee;
 		 }
-		 
+
 		 .person-info {
 		 	float: left;
 		 	margin-right: 10px;
 		 	width : 80px;
 		 	text-align : center;
 		 }
-		 
+
 		 li { list-style:none;  }
 
 		 li.individual-tweet h3 a {
 		     font-size : x-small;
 		     color : #666;
 		 }
-		 
+
 		 li.individual-tweet h4, li.individual-tweet form {
 		     font-size : xx-small;
 		     //visibility:hidden;
@@ -101,24 +101,24 @@
 		 li.individual-tweet h4.reply-count {
 		 	font-size : medium;
 			padding:0; margin:0;
-		 }		 
-		 
+		 }
+
 		 li.individual-tweet:hover h3 a {
 			color: #0060e0;
-		 }		 
-		 
+		 }
+
 		li.individual-tweet h3 a.most-popular {
 		 	font-size : medium;
 		 	font-weight : strong;
 		 }
 
-		 .avatar { 	
+		 .avatar {
 		 	border: solid 1px #ccc;
 		 }
 
-		 /******* /Tweet Formatting ********/		
-		
-		
+		 /******* /Tweet Formatting ********/
+
+
 		</style>{/literal}
 
 
@@ -131,13 +131,13 @@
 {if $tweet and $replies}
 	<div class="tweet">
 	<h2>{$tweet->tweet_html|link_usernames_to_twitter}</h2> <div class="tweetmeta">-<a href="http://twitter.com/{$tweet->author_username}/">{$tweet->author_username}</a>, <small><a href="http://twitter.com/{$tweet->author_username}/status/{$tweet->status_id}/">{$tweet->pub_date|relative_datetime}</a></small></div>
-	
+
 	</div>
 	{foreach from=$replies key=tid item=t}
 	<ul>
 		{include file="_status.public.tpl" t=$t}
 	</ul>
-	{/foreach}	
+	{/foreach}
 
 </div>
 <h2>Replies to a Single Tweet</h2>

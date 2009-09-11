@@ -18,19 +18,19 @@ $td = new TweetDAO($db);
 $id = new InstanceDAO($db);
 
 if ( isset($_REQUEST['u']) && $id->isUserConfigured($_REQUEST['u']) ){
-	$username = $_REQUEST['u'];
-	$oid = new OwnerInstanceDAO($db);
-	if ( !$oid->doesOwnerHaveAccess($owner, $username) ) {
-		echo 'Insufficient privileges. <a href="/">Back</a>.';
-		$db->closeConnection($conn);
-		die;
-	} else {
-		$tweets = $td->getAllTweetsByUsername($username);	
-	}
+    $username = $_REQUEST['u'];
+    $oid = new OwnerInstanceDAO($db);
+    if ( !$oid->doesOwnerHaveAccess($owner, $username) ) {
+        echo 'Insufficient privileges. <a href="/">Back</a>.';
+        $db->closeConnection($conn);
+        die;
+    } else {
+        $tweets = $td->getAllTweetsByUsername($username);
+    }
 } else {
-	echo 'No access';
-	$db->closeConnection($conn);
-	die;
+    echo 'No access';
+    $db->closeConnection($conn);
+    die;
 }
 
 $s = new SmartyTwitalytic();

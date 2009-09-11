@@ -1,4 +1,4 @@
-<?php   
+<?php
 require_once('config.crawler.inc.php');
 ini_set("include_path", ini_get("include_path").PATH_SEPARATOR.$INCLUDE_PATH);
 require_once("init.php");
@@ -15,45 +15,37 @@ $flickrapi = new FlickrAPIAccessor($TWITALYTIC_CFG['flickr_api_key']);
 
 $instances = $id->getAllInstancesStalestFirst();
 foreach ($instances as $i) {
-	$logger->setUsername($i->twitter_username);
-	$tokens = $oid->getOAuthTokens($i->id);
-	$api = new CrawlerTwitterAPIAccessorOAuth($tokens['oauth_access_token'], $tokens['oauth_access_token_secret'], $TWITALYTIC_CFG['oauth_consumer_key'], $TWITALYTIC_CFG['oauth_consumer_secret'], $i, $TWITALYTIC_CFG['archive_limit']);
-	$crawler = new Crawler($i, $logger, $api, $db);
-	$cfg = new Config($i->twitter_username, $i->twitter_user_id);
-	
-	$api->init($logger);
+    $logger->setUsername($i->twitter_username);
+    $tokens = $oid->getOAuthTokens($i->id);
+    $api = new CrawlerTwitterAPIAccessorOAuth($tokens['oauth_access_token'], $tokens['oauth_access_token_secret'], $TWITALYTIC_CFG['oauth_consumer_key'], $TWITALYTIC_CFG['oauth_consumer_secret'], $i, $TWITALYTIC_CFG['archive_limit']);
+    $crawler = new Crawler($i, $logger, $api, $db);
+    $cfg = new Config($i->twitter_username, $i->twitter_user_id);
 
-	if ( $api->available_api_calls_for_crawler > 0 ) {
+    $api->init($logger);
 
-		$id->updateLastRun($i->id);
-		
-		$crawler->fetchInstanceUserInfo();
+    if ( $api->available_api_calls_for_crawler > 0 ) {
 
-		$crawler->fetchInstanceUserTweets($lurlapi, $flickrapi);
+        $id->updateLastRun($i->id);
+        $crawler->fetchInstanceUserInfo();
+        $crawler->fetchInstanceUserTweets($lurlapi, $flickrapi);
+        $crawler->fetchInstanceUserReplies($lurlapi, $flickrapi);
+        $crawler->fetchInstanceUserFriends();
+        $crawler->fetchInstanceUserFollowers();
+        $crawler->fetchStrayRepliedToTweets($lurlapi, $flickrapi);
+        $crawler->fetchUnloadedFollowerDetails();
+        $crawler->fetchFriendTweetsAndFriends($lurlapi, $flickrapi);
 
-		$crawler->fetchInstanceUserReplies($lurlapi, $flickrapi);
+        // TODO: Get direct messages
+        // TODO: Gather favorites data
 
-		$crawler->fetchInstanceUserFriends();
+        $crawler->cleanUpFollows();
 
-		$crawler->fetchInstanceUserFollowers();
-
-		$crawler->fetchStrayRepliedToTweets($lurlapi, $flickrapi);
-
-		$crawler->fetchUnloadedFollowerDetails();
-
-		$crawler->fetchFriendTweetsAndFriends($lurlapi, $flickrapi);
-
-		// TODO: Get direct messages
-		// TODO: Gather favorites data
-
-		$crawler->cleanUpFollows();
-	
-		// Save instance
-		$id->save($crawler->instance,  $crawler->owner_object->tweet_count, $logger, $api);
-	} 
+        // Save instance
+        $id->save($crawler->instance,  $crawler->owner_object->tweet_count, $logger, $api);
+    }
 }
 
-$logger->close();			# Close logging
+$logger->close();           # Close logging
 
 if ( isset($conn) ) $db->closeConnection($conn); // Clean up
 ?>

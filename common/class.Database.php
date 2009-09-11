@@ -1,4 +1,4 @@
-<?php 
+<?php
 class Database {
     var $db_host;
     var $db_name;
@@ -6,8 +6,8 @@ class Database {
     var $db_password;
     var $logger = null;
     var $table_prefix;
-	var $GMT_offset=8;
-    
+    var $GMT_offset=8;
+
     function Database($TWITALYTIC_CFG) {
         $this->db_host = $TWITALYTIC_CFG['db_host'];
         $this->db_name = $TWITALYTIC_CFG['db_name'];
@@ -18,7 +18,7 @@ class Database {
         if (isset($TWITALYTIC_CFG['GMT_offset']))
             $this->GMT_offset = $TWITALYTIC_CFG['GMT_offset'];
     }
-    
+
     function getConnection() {
         $fail = false;
         $conn = mysql_connect($this->db_host, $this->db_user, $this->db_password) or $fail = true;
@@ -29,24 +29,24 @@ class Database {
             throw new Exception("ERROR: ".mysql_errno()." ".mysql_error());
         return $conn;
     }
-    
+
     function closeConnection($conn) {
         mysql_close($conn);
     }
-    
+
     function exec($q) {
-    	$fail = false;
+        $fail = false;
         $q = str_replace('%prefix%', $this->table_prefix, $q);
         $q = str_replace('%gmt_offset%', $this->GMT_offset, $q);
 
         //echo $q;
         $r = mysql_query($q) or $fail = true;
-		if ($fail)
-            throw new Exception("ERROR: 
-			Query failed: ".$q. " 
-			 ".mysql_error());		
+        if ($fail)
+            throw new Exception("ERROR:
+            Query failed: ".$q. "
+             ".mysql_error());
         return $r;
     }
-    
+
 }
 ?>

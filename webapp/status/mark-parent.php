@@ -14,8 +14,8 @@ $template = $_GET["t"];
 $cache_key = $_GET["ck"];
 
 foreach ($oid as $o) {
-	echo $o;
-	echo "<br />";	
+    echo $o;
+    echo "<br />";
 }
 
 
@@ -34,16 +34,16 @@ $td = new TweetDAO($db);
 
 
 foreach ($oid as $o) {
-	echo "<br />";
-	
-	if ( isset($_GET["fp"]))
-		$td->assignParent($pid, $o, $_GET["fp"]);
-	else
-		$td->assignParent($pid, $o);
-	
+    echo "<br />";
+
+    if ( isset($_GET["fp"]))
+        $td->assignParent($pid, $o, $_GET["fp"]);
+    else
+        $td->assignParent($pid, $o);
+
 }
 
-$db->closeConnection($conn);	
+$db->closeConnection($conn);
 
 $s = new SmartyTwitalytic();
 $s->clear_cache($template, $cache_key);

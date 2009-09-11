@@ -1,4 +1,4 @@
-<?php 
+<?php
 class SmartyTwitalytic extends Smarty {
 
     function SmartyTwitalytic() {
@@ -12,7 +12,7 @@ class SmartyTwitalytic extends Smarty {
         $this->caching = $TWITALYTIC_CFG['cache_pages'];
         $this->assign('app_name', $TWITALYTIC_CFG['app_title']);
     }
-    
+
 }
 
 

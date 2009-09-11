@@ -6,7 +6,7 @@
 				<h3 class="followers">{$f.follower_count|number_format}</h3>
 				<h4 class="follower-count">{$f.friend_count|number_format}</h4>
 			</div>
-				
+
 			<div class="tweet-body">
 				<p>{if $f.description}{$f.description}{/if}</p>
 				<p> Averages {$f.avg_tweets_per_day} updates per day; {$f.tweet_count|number_format} total.
@@ -15,5 +15,5 @@
 				<h4 class="person-description">Joined {$f.joined|relative_datetime} on {$f.joined|date_format:"%D"}</h4>
 
 			</div>
-		
+
 		</li>

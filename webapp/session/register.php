@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 
 // set up
@@ -6,97 +6,90 @@ chdir("..");
 require_once('config.webapp.inc.php');
 ini_set("include_path", ini_get("include_path").PATH_SEPARATOR.$INCLUDE_PATH);
 require_once("init.php");
- 
+
 if ( !$TWITALYTIC_CFG['is_registration_open']) {
-	echo 'So sorry, but registration on this instance of Twitalytic is closed. <br /><br /><a href="http://github.com/ginatrapani/twitalytic/tree/master">Install Twitalytic on your own server</a> or go back to <a href="'.$TWITALYTIC_CFG['site_root_path'].'public.php">the public timeline</a>.';
-	die();
+    echo 'So sorry, but registration on this instance of Twitalytic is closed. <br /><br /><a href="http://github.com/ginatrapani/twitalytic/tree/master">Install Twitalytic on your own server</a> or go back to <a href="'.$TWITALYTIC_CFG['site_root_path'].'public.php">the public timeline</a>.';
+    die();
+
+// If the script is die()ing, then what's the point of an else statement?
+// Why not just remove the else and continue the script?
 } else {
+    include ('dbc.php');
 
+    if ($_POST['Submit'] == 'Register') {
+        if (strlen($_POST['email']) < 5) {
+            die ("Incorrect email. Please enter valid email address..");
+        }
 
-include ('dbc.php'); 
+        if (strcmp($_POST['pass1'],$_POST['pass2']) || empty($_POST['pass1']) ) {
+            //die ("Password does not match");
+            die("ERROR: Password does not match or empty..");
+        }
 
-if ($_POST['Submit'] == 'Register')
-{
-   if (strlen($_POST['email']) < 5)
-   {
-    die ("Incorrect email. Please enter valid email address..");
-    }
-   if (strcmp($_POST['pass1'],$_POST['pass2']) || empty($_POST['pass1']) )
-	{ 
-	//die ("Password does not match");
-	die("ERROR: Password does not match or empty..");
+        if (strcmp(md5($_POST['user_code']),$_SESSION['ckey'])) {
+            die("Invalid code entered. Please enter the correct code as shown in the Image");
+        }
 
-	}
-	if (strcmp(md5($_POST['user_code']),$_SESSION['ckey']))
-	{ 
-			 die("Invalid code entered. Please enter the correct code as shown in the Image");
-  		} 
-	$rs_duplicates = mysql_query("select id from ".$TWITALYTIC_CFG['table_prefix']."owners where user_email='$_POST[email]'");
-	$duplicates = mysql_num_rows($rs_duplicates);
-	
-	if ($duplicates > 0)
-	{	
-	//die ("ERROR: User account already exists.");
-	header("Location: register.php?msg=ERROR: User account already exists..");
-	exit();
-	}
-	
-		
-		
-	
-	$md5pass = md5($_POST['pass2']);
-	$activ_code = rand(1000,9999);
-	$server = $_SERVER['HTTP_HOST'];
-	$host = ereg_replace('www.','',$server);
-	mysql_query("INSERT INTO ".$TWITALYTIC_CFG['table_prefix']."owners
-	              (`user_email`,`user_pwd`,`country`,`joined`,`activation_code`,`full_name`)
-				  VALUES
-				  ('$_POST[email]','$md5pass','$_POST[country]',now(),'$activ_code','$_POST[full_name]')") or die(mysql_error());
-	
-	$message = 
+        $rs_duplicates = mysql_query("select id from ".$TWITALYTIC_CFG['table_prefix']."owners where user_email='$_POST[email]'");
+        $duplicates = mysql_num_rows($rs_duplicates);
+
+        if ($duplicates > 0) {
+            //die ("ERROR: User account already exists.");
+            header("Location: register.php?msg=ERROR: User account already exists..");
+            exit();
+        }
+
+        $md5pass = md5($_POST['pass2']);
+        $activ_code = rand(1000,9999);
+        $server = $_SERVER['HTTP_HOST'];
+        $host = ereg_replace('www.','',$server);
+        mysql_query("INSERT INTO ".$TWITALYTIC_CFG['table_prefix']."owners
+                  (`user_email`,`user_pwd`,`country`,`joined`,`activation_code`,`full_name`)
+                  VALUES
+                  ('$_POST[email]','$md5pass','$_POST[country]',now(),'$activ_code','$_POST[full_name]')") or die(mysql_error());
+
+        $message =
 "Thank you for registering an account with ".$TWITALYTIC_CFG['app_title'].". Click on the link below to activate your account...\n\n
 http://$server/".$TWITALYTIC_CFG['site_root_path']."session/activate.php?usr=$_POST[email]&code=$activ_code \n\n
 _____________________________________________
 Thank you. This is an automated response. PLEASE DO NOT REPLY.
 ";
 
-	mail($_POST['email'] , "Login Activation", $message,
-    "From: \"Auto-Response\" <notifications@$host>\r\n" .
-     "X-Mailer: PHP/" . phpversion());
-	unset($_SESSION['ckey']);
-	echo("Registration Successful! An activation code has been sent to your email address with an activation link...");	
-	
-	exit;
-	}	
-
-?> 
+        mail($_POST['email'] , "Login Activation", $message,
+            "From: \"Auto-Response\" <notifications@$host>\r\n" .
+            "X-Mailer: PHP/" . phpversion());
+        unset($_SESSION['ckey']);
+        echo("Registration Successful! An activation code has been sent to your email address with an activation link...");
+        exit;
+    }
+?>
 <html>
-<head> 
+<head>
 <link href="styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 <?php if (isset($_GET['msg'])) { echo "<div class=\"msg\"> $_GET[msg] </div>"; } ?>
 <p>&nbsp;</p>
 <table width="65%" border="0" cellpadding="0" cellspacing="0">
-  <tr> 
+  <tr>
     <td bgcolor="d5e8f9" class="mnuheader"><strong><font size="5">Register Account</font></strong></td>
   </tr>
-  <tr> 
+  <tr>
     <td bgcolor="e5ecf9" class="forumposts"><form name="form1" method="post" action="register.php" style="padding:5px;">
         <p><br>
-          Name: 
+          Name:
           <input name="full_name" type="text" id="full_name">
           Ex. John Wilson</p>
-        <p>Email: 
+        <p>Email:
           <input name="email" type="text" id="email">
           Ex. john@domain.com</p>
-        <p>Password: 
+        <p>Password:
           <input name="pass1" type="password" id="pass1">
           Atleast 5 chars</p>
-        <p>Retype Password: 
+        <p>Retype Password:
           <input name="pass2" type="password" id="pass2">
         </p>
-        <p>Country: 
+        <p>Country:
           <select name="country" id="select8">
             <option value="Afghanistan">Afghanistan</option>
             <option value="Albania">Albania</option>
@@ -183,7 +176,7 @@ Thank you. This is an automated response. PLEASE DO NOT REPLY.
             <option value="Kiribati ">Kiribati </option>
             <option value="Kuwait">Kuwait</option>
             <option value="Kyrgyzstan">Kyrgyzstan</option>
-            <option value="Lao People's Democratic Republic">Lao People's Democratic 
+            <option value="Lao People's Democratic Republic">Lao People's Democratic
             Republic</option>
             <option value="Latvia">Latvia</option>
             <option value="Lebanon">Lebanon</option>
@@ -272,10 +265,10 @@ Thank you. This is an automated response. PLEASE DO NOT REPLY.
             <option value="Yugoslavia">Yugoslavia</option>
           </select>
         </p>
-        <p> 
+        <p>
           <input name="user_code" type="text" size="10">
           <img src="pngimg.php" align="middle">&nbsp; </p>
-        <p align="center"> 
+        <p align="center">
           <input type="submit" name="Submit" value="Register">
         </p>
       </form></td>

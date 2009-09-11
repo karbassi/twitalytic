@@ -4,7 +4,7 @@
  * @package Smarty
  * @subpackage plugins
  */
- 
+
 /**
  * Smarty link usernames plugin
  *
@@ -14,7 +14,7 @@
  * Purpose:  links a Twitter username to their user page
  * Input:    status update text
  * Example:  {$status_html|link_usernames}
- * @author   Gina Trapani 
+ * @author   Gina Trapani
  * @version 1.0
  * @param string
  * @return string

@@ -37,7 +37,7 @@ $s->assign('owner', $owner);
 $s->assign('cfg', $cfg);
 $s->assign('oauthorize_link',$oauthorize_link );
 # clean up
-$db->closeConnection($conn);	
+$db->closeConnection($conn);
 
 $s->display('account.index.tpl');
 ?>

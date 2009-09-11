@@ -21,52 +21,52 @@ $to = new TwitterOAuth($cfg->oauth_consumer_key, $cfg->oauth_consumer_secret, $r
 $tok = $to->getAccessToken();
 
 if ( isset( $tok['oauth_token'] ) && isset($tok['oauth_token_secret']) ) {
-	$api = new TwitterAPIAccessorOAuth($tok['oauth_token'], $tok['oauth_token_secret'], $TWITALYTIC_CFG['oauth_consumer_key'], $TWITALYTIC_CFG['oauth_consumer_secret']);
-	
-	$u = $api->verifyCredentials();
+    $api = new TwitterAPIAccessorOAuth($tok['oauth_token'], $tok['oauth_token_secret'], $TWITALYTIC_CFG['oauth_consumer_key'], $TWITALYTIC_CFG['oauth_consumer_secret']);
 
-//	echo "User ID: ". $u['user_id'];
-//	echo "User name: ". $u['user_name'];
-	$twitter_id = $u['user_id'];
-	$tu = $u['user_name']; 
-	
-	$db = new Database($TWITALYTIC_CFG);
-	$conn = $db->getConnection();
-	$od = new OwnerDAO($db);
+    $u = $api->verifyCredentials();
 
-	$owner = $od->getByEmail($_SESSION['user']);
+//  echo "User ID: ". $u['user_id'];
+//  echo "User name: ". $u['user_name'];
+    $twitter_id = $u['user_id'];
+    $tu = $u['user_name'];
 
-	if ( $twitter_id > 0 ) {
-		echo "Twitter authentication successful.<br />";
+    $db = new Database($TWITALYTIC_CFG);
+    $conn = $db->getConnection();
+    $od = new OwnerDAO($db);
 
-		$id = new InstanceDAO($db);
-		$i = $id->getByUsername($tu);
-		$oid = new OwnerInstanceDAO($db);
+    $owner = $od->getByEmail($_SESSION['user']);
 
-		if ( isset($i) ) {
-			echo "Instance already exists.<br />";
+    if ( $twitter_id > 0 ) {
+        echo "Twitter authentication successful.<br />";
 
-			$oi = $oid -> get($owner->id, $i->id);
-			if ( $oi != null ) {
-				echo "Owner already has this instance, no insert or update.<br />";
-			} else {
-				$oid->insert($owner->id, $i->id, $tok['oauth_token'], $tok['oauth_token_secret']);
-				echo "Added owner instance.<br />";
-			}
+        $id = new InstanceDAO($db);
+        $i = $id->getByUsername($tu);
+        $oid = new OwnerInstanceDAO($db);
 
-		} else {
-			echo "Instance does not exist.<br />";
+        if ( isset($i) ) {
+            echo "Instance already exists.<br />";
 
-			$id->insert($twitter_id, $tu);
-			echo "Created instance.<br />";
+            $oi = $oid -> get($owner->id, $i->id);
+            if ( $oi != null ) {
+                echo "Owner already has this instance, no insert or update.<br />";
+            } else {
+                $oid->insert($owner->id, $i->id, $tok['oauth_token'], $tok['oauth_token_secret']);
+                echo "Added owner instance.<br />";
+            }
 
-			$i = $id->getByUsername($tu);
-			$oid->insert($owner->id, $i->id, $tok['oauth_token'], $tok['oauth_token_secret']);
-			echo "Created an owner_instance.<br />";
-		}
-		# clean up
-		$db->closeConnection($conn);	
-	}
+        } else {
+            echo "Instance does not exist.<br />";
+
+            $id->insert($twitter_id, $tu);
+            echo "Created instance.<br />";
+
+            $i = $id->getByUsername($tu);
+            $oid->insert($owner->id, $i->id, $tok['oauth_token'], $tok['oauth_token_secret']);
+            echo "Created an owner_instance.<br />";
+        }
+        # clean up
+        $db->closeConnection($conn);
+    }
 }
 
 

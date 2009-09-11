@@ -11,8 +11,8 @@
 					{if $exchanges}<li><a href="#replies">Conversations ({$total_exchanges})</a></li>{/if}
 					{if count($mutual_friends) > 0}<li><a href="#mutualfriends">Mutual Friends ({$total_mutual_friends})</a></li>{/if}
 					{if count($sources) > 0 }<li><a href="#sources">Clients</a></li>{/if}
-					
-				</ul>		
+
+				</ul>
 
 
 		<div class="section" id="tweets">
@@ -63,7 +63,7 @@
 
 	{foreach from=$sources key=tid item=s}
 	<div style="padding:5px;background-color:{cycle values="#eeeeee,#ffffff"}">
-			{$s.total} statuses posted with {$s.source} 
+			{$s.total} statuses posted with {$s.source}
 	</div>
 	{/foreach}
 

@@ -1,4 +1,4 @@
-<?php 
+<?php
 class TwitterAPIAccessor {
     var $app_title;
     var $cURL;
@@ -7,7 +7,7 @@ class TwitterAPIAccessor {
     var $cURL_source;
     var $twitter_username;
     var $twitter_password;
-    
+
     function TwitterAPIAccessor($twitter_username, $twitter_password, $app_title = "Twitalytic") {
         $this->twitter_username = $twitter_username;
         $this->twitter_password = $twitter_password;
@@ -16,7 +16,7 @@ class TwitterAPIAccessor {
         $this->app_title = $app_title;
     }
 
-    
+
     function doesAuthenticate() {
         //returns user id if successful; -1 if not.
         $this->cURL = $this->prepRequest('', $this->twitter_username, $this->twitter_password);
@@ -30,18 +30,18 @@ class TwitterAPIAccessor {
         }
     }
 
-    
+
     function prepAPI($master_username) {
-    
+
         # Define how to access Twitter API
         $api_domain = 'https://twitter.com';
         $api_format = 'xml';
         $search_domain = 'http://search.twitter.com';
         $search_format = 'atom';
-        
+
         # Define method paths ... [id] is a placeholder
         $api_method = array("end_session"=>"/account/end_session", "rate_limit"=>"/account/rate_limit_status", "delivery_device"=>"/account/update_delivery_device", "location"=>"/account/update_location", "profile"=>"/account/update_profile", "profile_background"=>"/account/update_profile_background_image", "profile_colors"=>"/account/update_profile_colors", "profile_image"=>"/account/update_profile_image", "credentials"=>"/account/verify_credentials", "block"=>"/blocks/create/[id]", "remove_block"=>"/blocks/destroy/[id]", "messages_received"=>"/direct_messages", "delete_message"=>"/direct_messages/destroy/[id]", "post_message"=>"/direct_messages/new", "messages_sent"=>"/direct_messages/sent", "bookmarks"=>"/favorites/[id]", "create_bookmark"=>"/favorites/create/[id]", "remove_bookmark"=>"/favorites/destroy/[id]", "followers_ids"=>"/followers/ids/[id]", "following_ids"=>"/friends/ids/[id]", "follow"=>"/friendships/create/[id]", "unfollow"=>"/friendships/destroy/[id]", "confirm_follow"=>"/friendships/exists", "test"=>"/help/test", "turn_on_notification"=>"/notifications/follow/[id]", "turn_off_notification"=>"/notifications/leave/[id]", "delete_tweet"=>"/statuses/destroy/[id]", "followers"=>"/statuses/followers/[id]", "following"=>"/statuses/friends/[id]", "friends_timeline"=>"/statuses/friends_timeline", "public_timeline"=>"/statuses/public_timeline", "replies"=>"/statuses/replies", "show_tweet"=>"/statuses/show/[id]", "post_tweet"=>"/statuses/update", "user_timeline"=>"/statuses/user_timeline/[id]", "show_user"=>"/users/show/[id]");
-        
+
         # Construct cURL sources
         foreach ($api_method as $key=>$value) {
             $urls[$key] = $api_domain.$value.".".$api_format;
@@ -49,22 +49,22 @@ class TwitterAPIAccessor {
         $urls['search'] = $search_domain."/search.".$search_format;
         $urls['search_web'] = $search_domain."/search";
         $urls['trends'] = $search_domain."/trends.json";
-        
+
         return array($master_username, $urls);
     }
-    
+
     function prepRequest($title = '', $username = '', $password = '') {
         $options = array(CURLOPT_USERAGENT=>$title, CURLOPT_RETURNTRANSFER=>1, CURLOPT_SSL_VERIFYPEER=>false, CURLOPT_HTTPHEADER=>array('Expect:'));
         if ($username != '') {
             $options[CURLOPT_USERPWD] = "$username:$password";
         }
-        
+
         $cURL = curl_init(); # Initiate cURL connection
         curl_setopt_array($cURL, $options); # Set all options at once
         return $cURL;
     }
 
-    
+
     function apiRequestFromWebapp($url) {
         $cURL = $this->cURL;
         curl_setopt($cURL, CURLOPT_URL, $url);
@@ -72,26 +72,26 @@ class TwitterAPIAccessor {
         $status = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
         return array($status, $foo);
     }
-    
+
     function close() {
         curl_close($this->cURL);
     }
-    
+
     function getStatus() {
         return $this->available_api_calls_for_crawler." API calls left for crawler until ".date('H:i:s', (int) $this->next_api_reset);
-        
+
     }
 
-    
+
     function parseFeed($url, $date = 0) {
         $thisFeed = array();
         $feed_title = '';
         if (preg_match("/^http/", $url)) {
             try {
                 $doc = createDOMfromURL($url);
-                
+
                 $feed_title = $doc->getElementsByTagName('title')->item(0)->nodeValue;
-                
+
                 $item = $doc->getElementsByTagName('item');
                 foreach ($item as $item) {
                     $articleInfo = array('title'=>$item->getElementsByTagName('title')->item(0)->nodeValue, 'link'=>$item->getElementsByTagName('link')->item(0)->nodeValue, 'id'=>$item->getElementsByTagName('id')->item(0)->nodeValue, 'pubDate'=>$item->getElementsByTagName('pubDate')->item(0)->nodeValue);
@@ -99,7 +99,7 @@ class TwitterAPIAccessor {
                         array_push($thisFeed, $articleInfo);
                     }
                 }
-                
+
                 $entry = $doc->getElementsByTagName('entry');
                 foreach ($entry as $entry) {
                     $articleInfo = array('title'=>$entry->getElementsByTagName('title')->item(0)->nodeValue, 'link'=>$entry->getElementsByTagName('link')->item(0)->getAttribute('href'), 'id'=>$entry->getElementsByTagName('id')->item(0)->nodeValue, 'pubDate'=>$entry->getElementsByTagName('pubDate')->item(0)->nodeValue, 'published'=>$entry->getElementsByTagName('published')->item(0)->nodeValue);
@@ -115,11 +115,11 @@ class TwitterAPIAccessor {
                 $form_error = 15;
             }
         }
-        
+
         $feed_title = htmlspecialchars($feed_title, ENT_QUOTES, 'UTF-8');
         return array($thisFeed, $feed_title);
     }
-    
+
     function parseError($data) {
         $thisFeed = array();
         try {
@@ -138,10 +138,10 @@ class TwitterAPIAccessor {
         catch(Exception $e) {
             $form_error = 15;
         }
-        
+
         return $thisFeed;
     }
-    
+
     function parseXML($data) {
         $thisFeed = array();
         try {
@@ -185,40 +185,40 @@ class TwitterAPIAccessor {
         catch(Exception $e) {
             $form_error = 15;
         }
-        
+
         return $thisFeed;
     }
-    
+
     function createDOMfromURL($url) {
         $doc = new DOMDocument();
         $doc->load($url);
         return $doc;
     }
-    
+
     function createParserFromString($data) {
         $xml = simplexml_load_string($data);
         return $xml;
     }
-    
+
 }
 
 class CrawlerTwitterAPIAccessor extends TwitterAPIAccessor {
     var $api_calls_to_leave_unmade;
     var $available_api_calls_for_crawler = null;
     var $available_api_calls_for_twitter = null;
-    
+
     function CrawlerTwitterAPIAccessor($app_title, $instance) {
         parent::TwitterAPIAccessor($instance->twitter_username, $instance->twitter_password);
         $this->api_calls_to_leave_unmade = $instance->api_calls_to_leave_unmade;
     }
 
-    
+
     function init($logger) {
         $status_message = "";
         $account_status = $this->cURL_source['rate_limit'];
         list($cURL_status, $twitter_data) = $this->apiRequest($account_status, $logger);
         $this->available_api_calls_for_crawler++; //status check doesnt' count against balance
-        
+
         if ($cURL_status > 200) {
             $this->available = false;
         } else {
@@ -238,16 +238,16 @@ class CrawlerTwitterAPIAccessor extends TwitterAPIAccessor {
         $status_message = "";
         $logger->logStatus($this->getStatus(), get_class($this));
 
-        
+
     }
-    
+
     function apiRequest($url, $logger) {
         $cURL = $this->cURL;
         curl_setopt($cURL, CURLOPT_URL, $url);
         $foo = curl_exec($cURL);
         $status = curl_getinfo($cURL, CURLINFO_HTTP_CODE);
         $this->available_api_calls_for_crawler--;
-        
+
         if ($status > 200) {
             $status_message = "Could not retrieve $url";
             $status_message .= " | API ERROR: $status";
@@ -262,13 +262,13 @@ class CrawlerTwitterAPIAccessor extends TwitterAPIAccessor {
         }
         $logger->logStatus($status_message, get_class($this));
         $status_message = "";
-        
+
         if ($url != "https://twitter.com/account/rate_limit_status.xml") {
             $status_message = $this->getStatus();
             $logger->logStatus($status_message, get_class($this));
             $status_message = "";
         }
-        
+
         return array($status, $foo);
     }
 }
